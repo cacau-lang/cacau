@@ -1,0 +1,67 @@
+// Once WHITESPACE is defined, pest allows arbitrary whitespace between tokens 
+WHITESPACE = _{ (" " | NEWLINE) }
+
+// Silenced so that error messages show up as "expected identifier"
+// instead of "expected alpha"
+// TODO: add underline
+alpha = _{ 'a'..'z' | 'A'..'Z'}
+digit = { '0'..'9' }
+arrow = { "->" }
+
+// A valid identifier must not start with a digit
+identifier = @{ alpha ~ (alpha | digit)* }
+
+// An integer consists of one or more digits
+integer = @{
+    ASCII_DIGIT+
+}
+
+// A float is two integers joined by a dot
+float = {
+    integer ~ "." ~ integer
+}
+
+expression = { integer }
+
+// Type annotation of the form ": type_name"
+type_annotation = { ":" ~ identifier }
+
+// Binding a value to a name.
+// May or may not contain a type annotation
+// E.g.:
+//     let x = "hey there"
+//     let x: string = "hey there"
+assignment = {
+	"let" ~ identifier ~ type_annotation? ~ "=" ~ expression
+}
+
+// An argument for a function
+// E.g.
+//     x: int
+//     name: string
+function_argument = {
+	identifier ~ type_annotation
+}
+
+// The return type for a function
+// E.g.
+//     -> bool
+//     -> int
+function_return = {
+	arrow ~ identifier
+}
+
+// The declaration of a function (without its body)
+// E.g.:
+//    fn main
+//    pub fn multiply x: int, y: int -> int
+//    fn is_even n: int -> bool
+function_declaration = {
+	"pub"? ~ "fn" ~ identifier ~ (function_argument)* ~ function_return?
+}
+
+file = {
+    SOI ~
+    (float | integer)+ ~
+    EOI
+}
