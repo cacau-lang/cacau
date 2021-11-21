@@ -108,8 +108,14 @@ math_op = _{ add | subtract | multiply | divide | power | modulo }
     power    = { "^" }
     modulo    = { "%" }
 
-math_expr = { math_term ~ (math_op ~ math_term)* }
-math_term = _{ num | "(" ~ math_expr ~ ")" }
+math_expr = { 
+    math_term ~ (math_op ~ math_term)* 
+}
+math_term = _{ unary_minus | num | identifier | "(" ~ math_expr ~ ")" }
+
+unary_minus = {
+    "-" ~ (identifier | num | curly_braced_expression | "(" ~ expression ~ ")" )
+}
 
 // A char of the form 'x', where x is any value in char_value
 char = { 

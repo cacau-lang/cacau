@@ -278,10 +278,14 @@ mod parser_tests {
     #[test]
     fn math_op() {
         assert_parses(Rule::math_expr, "2");
+        assert_parses(Rule::math_expr, "-2");
+        assert_parses(Rule::math_expr, "-2 * 5");
+        assert_parses(Rule::math_expr, "-(2*5)");
+        assert_parses(Rule::math_expr, "x + y");
         assert_parses(Rule::math_expr, "2 + 2");
         assert_parses(Rule::math_expr, "2 - (2*3)");
         assert_parses(Rule::math_expr, "(2^3)/2");
-        assert_parses(Rule::math_expr, "(2-2) * (3+6)");
+        assert_parses(Rule::math_expr, "(2-y) * (3+6)");
 
         assert_parses(Rule::expression, "2");
         assert_parses(Rule::expression, "2 + 2");
@@ -290,6 +294,8 @@ mod parser_tests {
         assert_parses(Rule::expression, "(2-2) * (3+6)");
         assert_parses(Rule::expression, "(2-2) % (3+6)");
 
+
+        assert_does_not_parse(Rule::math_expr, "-");
         assert_does_not_parse(Rule::math_expr, "()");
 
         assert_does_not_parse(Rule::expression, "()");
