@@ -8,8 +8,8 @@ pub struct ExpressionParser;
 mod parser_tests {
     use pest::Parser;
 
-    use crate::Rule;
     use crate::ExpressionParser;
+    use crate::Rule;
 
     fn parse(rule: Rule, expression: &str) -> Option<()> {
         ExpressionParser::parse(rule, expression).ok().map(|_| ())
@@ -29,9 +29,8 @@ mod parser_tests {
         assert_parses(Rule::identifier, "z");
         assert_parses(Rule::identifier, "_");
 
-
         assert_does_not_parse(Rule::identifier, "2");
-        assert_does_not_parse(Rule::identifier, "7");   
+        assert_does_not_parse(Rule::identifier, "7");
     }
 
     #[test]
@@ -58,7 +57,6 @@ mod parser_tests {
         assert_parses(Rule::integer, "987654321");
         assert_parses(Rule::integer, "987654321");
     }
-
 
     #[test]
     fn floats() {
@@ -93,7 +91,7 @@ mod parser_tests {
         assert_parses(Rule::assignment, "let six: int = 5");
 
         assert_parses(Rule::assignment, "let six: BigDecimal = 10");
-        
+
         assert_does_not_parse(Rule::assignment, "let name");
         assert_does_not_parse(Rule::assignment, "let ch x: b");
         assert_does_not_parse(Rule::assignment, "six: BigDecimal = 10");
@@ -104,7 +102,7 @@ mod parser_tests {
         assert_parses(Rule::function_argument, "x: int");
         assert_parses(Rule::function_argument, "y: string");
         assert_parses(Rule::function_argument, "lambda: num");
-        
+
         assert_does_not_parse(Rule::function_argument, "x: 123");
         assert_does_not_parse(Rule::function_argument, "y: \"Hey\"");
     }
@@ -114,7 +112,6 @@ mod parser_tests {
         assert_parses(Rule::function_return, "-> x");
         assert_parses(Rule::function_return, "-> y");
         assert_parses(Rule::function_return, "-> z");
-        
 
         assert_does_not_parse(Rule::function_return, "-> 123");
         assert_does_not_parse(Rule::function_return, "->");
@@ -125,14 +122,28 @@ mod parser_tests {
     fn function_declaration() {
         // TODO: rewrite these function indentifiers whenever the underline is available
         assert_parses(Rule::function_declaration, "fn main");
-        assert_parses(Rule::function_declaration, "pub fn no_args_but_returns_something -> int");
-        assert_parses(Rule::function_declaration, "fn no_args_but_returns_something -> int");
+        assert_parses(
+            Rule::function_declaration,
+            "pub fn no_args_but_returns_something -> int",
+        );
+        assert_parses(
+            Rule::function_declaration,
+            "fn no_args_but_returns_something -> int",
+        );
         assert_parses(Rule::function_declaration, "fn one_arg_no_return x: int");
-        assert_parses(Rule::function_declaration, "fn one_arg_one_return x: int -> int");
+        assert_parses(
+            Rule::function_declaration,
+            "fn one_arg_one_return x: int -> int",
+        );
         assert_parses(Rule::function_declaration, "fn several_args x: int, y: int");
-        assert_parses(Rule::function_declaration, "pub fn several_args x: int, y: int");
-        assert_parses(Rule::function_declaration, "fn several_args_with_return x: int, y: int, z: int -> bool");
-
+        assert_parses(
+            Rule::function_declaration,
+            "pub fn several_args x: int, y: int",
+        );
+        assert_parses(
+            Rule::function_declaration,
+            "fn several_args_with_return x: int, y: int, z: int -> bool",
+        );
 
         assert_does_not_parse(Rule::function_declaration, "fn");
         assert_does_not_parse(Rule::function_declaration, "pub fn");
@@ -153,7 +164,7 @@ mod parser_tests {
     fn char() {
         // TODO: ideally check that Unicode values parse
 
-        for ch in 'a' .. 'Z' {
+        for ch in 'a'..'Z' {
             let ch = format!("'{}'", ch);
             assert_parses(Rule::char, &ch);
         }
@@ -181,17 +192,26 @@ mod parser_tests {
         assert_parses(Rule::boolean_expr, "false or true");
         assert_parses(Rule::boolean_expr, "false or (false and true)");
         assert_parses(Rule::boolean_expr, "false or (false and (true or false))");
-        assert_parses(Rule::boolean_expr, "false or (false and (true or (true and false)))");
-        assert_parses(Rule::boolean_expr, "(false and (true or (true and false))) or (false and (true or (true and (true))))");
+        assert_parses(
+            Rule::boolean_expr,
+            "false or (false and (true or (true and false)))",
+        );
+        assert_parses(
+            Rule::boolean_expr,
+            "(false and (true or (true and false))) or (false and (true or (true and (true))))",
+        );
     }
 
     #[test]
     fn enum_definition() {
-        assert_parses(Rule::enum_definition, "pub enum NameOrId { Name(string), Id(Uuid) }");
+        assert_parses(
+            Rule::enum_definition,
+            "pub enum NameOrId { Name(string), Id(Uuid) }",
+        );
         assert_parses(Rule::enum_definition, "pub enum Status { Polling, Ready }");
         assert_parses(Rule::enum_definition, "pub enum Status { Polling, Ready, }");
         assert_parses(Rule::enum_definition, "pub enum NoVariant { }");
-        
+
         assert_does_not_parse(Rule::enum_definition, "pub enum");
 
         assert_does_not_parse(Rule::enum_definition, "pub enum NoVariantDoneWrong");
@@ -202,18 +222,23 @@ mod parser_tests {
         assert_does_not_parse(Rule::enum_definition, "pub enub Status { Polling, Ready }");
     }
 
-
     #[test]
     fn struct_definition() {
         assert_parses(Rule::struct_definition, "struct User { }");
         assert_parses(Rule::struct_definition, "pub struct User { }");
-        assert_parses(Rule::struct_definition, "pub struct User { pub username: string, age: int, birth_date: Date }");
+        assert_parses(
+            Rule::struct_definition,
+            "pub struct User { pub username: string, age: int, birth_date: Date }",
+        );
 
         // Missing braces
         assert_does_not_parse(Rule::struct_definition, "struct User");
 
         // Missing type for field
-        assert_does_not_parse(Rule::struct_definition, "pub struct User { pub username: , age: int, birth_date: Date }");
+        assert_does_not_parse(
+            Rule::struct_definition,
+            "pub struct User { pub username: , age: int, birth_date: Date }",
+        );
     }
 
     #[test]
