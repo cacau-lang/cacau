@@ -1,3 +1,6 @@
+pub use pest::Parser as ParserTrait;
+
+
 use pest_derive::Parser;
 
 #[derive(Parser)]

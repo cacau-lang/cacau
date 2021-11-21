@@ -7,14 +7,7 @@ license = "MIT"
 version = "0.1.0"
 edition = "2021"
 
-# For LALRPOP preprocessing
-build = "build.rs"
-
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-regex = "1.5.4"
-lalrpop-util = "0.19.6"
-
-[build-dependencies]
-lalrpop = "0.19.6"
+parser = { path = "../parser" }
