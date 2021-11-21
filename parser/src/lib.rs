@@ -332,11 +332,23 @@ mod parser_tests {
         assert_parses(Rule::program, "if true and false { 2*2 } else { 5}");
         assert_parses(Rule::program, "if true and false { false }");
         assert_parses(Rule::if_expr, "if true and false { false }");
+        assert_parses(Rule::if_expr, "if 2*6 { false }");
 
-        assert_does_not_parse(Rule::if_expr, "if 2*6 { false }");
         assert_does_not_parse(Rule::program, "if true and false { 2*2 } else");
         assert_does_not_parse(Rule::program, "if true and false 2*2 ");
     }
+
+    #[test]
+    fn elif() {
+        assert_parses(Rule::if_expr, "if some_condition { 2*2 }");
+        assert_parses(Rule::if_expr, "if some_condition { 2*2 } elif another_condition { 4* 4} ");
+        assert_parses(Rule::if_expr, "if some_condition { 2*2 } elif another_condition { 4* 4} else { 6*6 } ");
+        
+        assert_does_not_parse(Rule::if_expr, "if some_condition ");
+        assert_does_not_parse(Rule::if_expr, "if some_condition  elif another_condition { 4* 4} ");
+        assert_does_not_parse(Rule::program, "if some_condition { 2*2 } elif another_condition { 4* 4} else ");
+    }
+
 
     #[test]
     fn program() {

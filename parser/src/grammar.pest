@@ -103,12 +103,10 @@ boolean_term = _{
 }
 
 if_expr = _{
-    // if-then-else
-    "if" ~ boolean_expr ~ curly_braced_expression ~ "else" ~ curly_braced_expression
-    // if without else block
-    | "if" ~ boolean_expr ~ curly_braced_expression
+    "if" ~ expression ~ curly_braced_expression ~ elif* ~ ("else" ~ curly_braced_expression)?
 }
 	curly_braced_expression = _{ "{" ~ expression ~ "}" }
+    elif = _{ "elif" ~ expression ~ curly_braced_expression }
 
 math_op = _{ add | subtract | multiply | divide | power | modulo }
     add      = { "+" }
