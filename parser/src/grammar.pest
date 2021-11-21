@@ -56,13 +56,21 @@ boolean_term = _{
     boolean | "(" ~ boolean_expr ~ ")" 
 }
 
-math_op = _{ add | subtract | multiply | divide | power }
+if_expr = _{
+    // if-then-else
+    "if" ~ boolean_expr ~ curly_braced_expression ~ "else" ~ curly_braced_expression
+    // if without else block
+    | "if" ~ boolean_expr ~ curly_braced_expression
+}
+	curly_braced_expression = _{ "{" ~ expression ~ "}" }
+
+math_op = _{ add | subtract | multiply | divide | power | modulo }
     add      = { "+" }
     subtract = { "-" }
     multiply = { "*" }
     divide   = { "/" }
     power    = { "^" }
-
+    modulo    = { "%" }
 
 math_expr = { math_term ~ (math_op ~ math_term)* }
 math_term = _{ num | "(" ~ math_expr ~ ")" }
@@ -99,7 +107,9 @@ statement = {
     | integer
     | boolean
     | assignment
+    | if_expr
 }
+
 
 expression = {
     "{" ~ expression ~ "}"
@@ -108,7 +118,7 @@ expression = {
 }
 
 // A Cacau program
-program = {
+program = _{
     SOI ~
     (function_definition | struct_definition | enum_definition | expression )+ ~
     EOI

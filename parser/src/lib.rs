@@ -280,6 +280,7 @@ mod parser_tests {
         assert_parses(Rule::expression, "2 - (2*3)");
         assert_parses(Rule::expression, "(2^3)/2");
         assert_parses(Rule::expression, "(2-2) * (3+6)");
+        assert_parses(Rule::expression, "(2-2) % (3+6)");
 
         assert_does_not_parse(Rule::math_expr, "()");
 
@@ -300,5 +301,46 @@ mod parser_tests {
         assert_does_not_parse(Rule::function_definition, "fn x: int -> int { true and (false) }");
         assert_does_not_parse(Rule::function_definition, "2 + 2");
         assert_does_not_parse(Rule::function_definition, "2");
+    }
+
+    #[test]
+    fn if_expr() {
+        assert_parses(Rule::program, "if true and false { 2*2 } else { 5}");
+        assert_parses(Rule::program, "if true and false { false }");
+        assert_parses(Rule::if_expr, "if true and false { false }");
+
+        assert_does_not_parse(Rule::if_expr, "if 2*6 { false }");        
+        assert_does_not_parse(Rule::program, "if true and false { 2*2 } else");
+        assert_does_not_parse(Rule::program, "if true and false 2*2 ");
+    }
+
+    #[test]
+    fn program() {
+
+        // TODO: further testing
+
+        let valid_program = r###"
+        pub struct UserData {
+            pub name: string,
+            password: ZeroableString
+         }
+         
+        pub enum User {
+            Admin(UserData),
+            Regular(UserData),
+        }
+         
+        pub fn four -> int {
+           2 + 2
+        }"###;
+
+        let missing_else_expr = r###"
+        pub fn test {
+            if true and false { 2*2 } else
+        }
+        "###;
+
+        assert_parses(Rule::program, valid_program);
+        assert_does_not_parse(Rule::program, missing_else_expr);
     }
 }
