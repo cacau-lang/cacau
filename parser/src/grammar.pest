@@ -24,6 +24,8 @@ float = {
     integer ~ "." ~ integer
 }
 
+num = { float | digit }
+
 // A boolean value.
 // Either true or false
 boolean = {
@@ -46,6 +48,16 @@ boolean_term = _{
     boolean | "(" ~ boolean_expr ~ ")" 
 }
 
+math_op = _{ add | subtract | multiply | divide | power }
+    add      = { "+" }
+    subtract = { "-" }
+    multiply = { "*" }
+    divide   = { "/" }
+    power    = { "^" }
+
+
+math_expr = { math_term ~ (math_op ~ math_term)* }
+math_term = _{ num | "(" ~ math_expr ~ ")" }
 
 // Any value that would be acceptable in a Cacau string or char
 char_value = _{
