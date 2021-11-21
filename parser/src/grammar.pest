@@ -90,7 +90,29 @@ string = {
     "\"" ~ (raw_string | escape)* ~ "\""
 }
 
-expression = { integer }
+statement = {
+    string
+    | boolean_expr
+    | math_expr
+    | char
+    | float
+    | integer
+    | boolean
+    | assignment
+}
+
+expression = {
+    "{" ~ expression ~ "}"
+    | statement ~ ";"
+    | statement
+}
+
+// A Cacau program
+program = {
+    SOI ~
+    expression+ ~
+    EOI
+}
 
 // Type annotation of the form ": type_name"
 type_annotation = { ":" ~ identifier }
@@ -159,10 +181,4 @@ struct_field = {
 //     pub struct User { pub username: string, age: int, birth_date: Date }
 struct_definition = {
     "pub"? ~ "struct" ~ identifier ~ "{" ~ (struct_field ~ ",")* ~ struct_field? ~ "}"
-}
-
-file = {
-    SOI ~
-    (float | integer)+ ~
-    EOI
 }

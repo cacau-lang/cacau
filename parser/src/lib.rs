@@ -52,6 +52,11 @@ mod parser_tests {
 
     #[test]
     fn integers() {
+        assert_parses(Rule::expression, "1234");
+        assert_parses(Rule::expression, "000000");
+        assert_parses(Rule::expression, "987654321");
+        assert_parses(Rule::expression, "987654321");
+
         assert_parses(Rule::integer, "1234");
         assert_parses(Rule::integer, "000000");
         assert_parses(Rule::integer, "987654321");
@@ -60,6 +65,11 @@ mod parser_tests {
 
     #[test]
     fn floats() {
+        assert_parses(Rule::expression, "123.4");
+        assert_parses(Rule::expression, "000.000");
+        assert_parses(Rule::expression, "98.7654321");
+        assert_parses(Rule::expression, "987654.321");
+
         assert_parses(Rule::float, "123.4");
         assert_parses(Rule::float, "000.000");
         assert_parses(Rule::float, "98.7654321");
@@ -85,8 +95,11 @@ mod parser_tests {
     fn assignment() {
         // TODO: add other kinds of expressions here when possible
 
-        assert_parses(Rule::assignment, "let x = 123");
-        assert_parses(Rule::assignment, "let nines = 999");
+        assert_parses(Rule::expression, "let x = 123");
+        assert_parses(Rule::expression, "let nines = 999");
+
+        assert_parses(Rule::assignment, "let x = \"Hey there\"");
+        assert_parses(Rule::assignment, "let nines = 'c'");
 
         assert_parses(Rule::assignment, "let six: int = 5");
 
@@ -167,9 +180,11 @@ mod parser_tests {
         for ch in 'a'..'Z' {
             let ch = format!("'{}'", ch);
             assert_parses(Rule::char, &ch);
+            assert_parses(Rule::expression, &ch);
         }
 
         assert_does_not_parse(Rule::char, "''");
+        assert_does_not_parse(Rule::expression, "''");
     }
 
     #[test]
@@ -260,7 +275,15 @@ mod parser_tests {
         assert_parses(Rule::math_expr, "(2^3)/2");
         assert_parses(Rule::math_expr, "(2-2) * (3+6)");
 
+        assert_parses(Rule::expression, "2");
+        assert_parses(Rule::expression, "2 + 2");
+        assert_parses(Rule::expression, "2 - (2*3)");
+        assert_parses(Rule::expression, "(2^3)/2");
+        assert_parses(Rule::expression, "(2-2) * (3+6)");
+
         assert_does_not_parse(Rule::math_expr, "()");
+
+        assert_does_not_parse(Rule::expression, "()");
         assert_does_not_parse(Rule::math_expr, "*3");
     }
 }
