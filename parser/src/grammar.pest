@@ -57,8 +57,9 @@ function_return = {
 //    pub fn multiply x: int, y: int -> int
 //    fn is_even n: int -> bool
 function_declaration = {
-	"pub"? ~ "fn" ~ identifier ~ (function_argument)* ~ function_return?
+  "pub"? ~ "fn" ~ identifier ~ (function_argument ~ ",")* ~ function_argument? ~ function_return?
 }
+
 
 file = {
     SOI ~

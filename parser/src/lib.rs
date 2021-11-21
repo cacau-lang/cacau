@@ -5,7 +5,7 @@ use pest_derive::Parser;
 pub struct ExpressionParser;
 
 #[cfg(test)]
-mod tests {
+mod parser_tests {
     use pest::Parser;
 
     use crate::Rule;
@@ -105,5 +105,45 @@ mod tests {
         
         assert_does_not_parse(Rule::function_argument, "x: 123");
         assert_does_not_parse(Rule::function_argument, "y: \"Hey\"");
+    }
+
+    #[test]
+    fn function_return() {
+        assert_parses(Rule::function_return, "-> x");
+        assert_parses(Rule::function_return, "-> y");
+        assert_parses(Rule::function_return, "-> z");
+        
+
+        assert_does_not_parse(Rule::function_return, "-> 123");
+        assert_does_not_parse(Rule::function_return, "->");
+        assert_does_not_parse(Rule::function_return, "z");
+    }
+
+    #[test]
+    fn function_declaration() {
+        // TODO: rewrite these function indentifiers whenever the underline is available
+        assert_parses(Rule::function_declaration, "fn main");
+        assert_parses(Rule::function_declaration, "pub fn noargsbutreturnssomething -> int");
+        assert_parses(Rule::function_declaration, "fn noargsbutreturnssomething -> int");
+        assert_parses(Rule::function_declaration, "fn oneargnoreturn x: int");
+        assert_parses(Rule::function_declaration, "fn oneargonereturn x: int -> int");
+        assert_parses(Rule::function_declaration, "fn severalargs x: int, y: int");
+        assert_parses(Rule::function_declaration, "pub fn severalargs x: int, y: int");
+        assert_parses(Rule::function_declaration, "fn severalargswithreturn x: int, y: int, z: int -> bool");
+
+
+        assert_does_not_parse(Rule::function_declaration, "fn");
+        assert_does_not_parse(Rule::function_declaration, "pub fn");
+        assert_does_not_parse(Rule::function_declaration, "fn -> bool");
+
+        // TODO: use SOI and EOI matching here whenever available
+        // No function name
+        // assert_does_not_parse(Rule::function_declaration, "fn x: int, y: int, z: int -> bool");
+
+        // Arrow set but return type not specified
+        // assert_does_not_parse(Rule::function_declaration, "fn func x: int, y: int, z: int ->");
+
+        // Incorrect argument specification
+        // assert_does_not_parse(Rule::function_declaration, "fn func x: -> bool");
     }
 }
