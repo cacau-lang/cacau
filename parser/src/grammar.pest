@@ -31,6 +31,8 @@ keywords = _{
 // Once WHITESPACE is defined, pest allows arbitrary whitespace between tokens 
 WHITESPACE = _{ (" " | NEWLINE) }
 
+COMMENT = _{ "//" ~ (!"\n" ~ ANY)* }
+
 // Silenced so that error messages show up as "expected identifier"
 // instead of "expected alpha"
 // TODO: add underline
@@ -140,7 +142,8 @@ string = {
 }
 
 statement = {
-    string
+    function_call
+    | string
     | boolean_expr
     | math_expr
     | char
@@ -240,4 +243,9 @@ struct_field = {
 //     pub struct User { pub username: string, age: int, birth_date: Date }
 struct_definition = {
     "pub"? ~ "struct" ~ identifier ~ "{" ~ (struct_field ~ ",")* ~ struct_field? ~ "}"
+}
+
+// The syntax of calling a function
+function_call = {
+    identifier ~ "(" ~ (expression ~ ",")* ~ expression? ~ ")"
 }

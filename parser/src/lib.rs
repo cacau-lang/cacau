@@ -398,4 +398,16 @@ mod parser_tests {
         assert_does_not_parse(Rule::comparison, "==");
         assert_does_not_parse(Rule::comparison, "<= z");
     }
+
+
+    #[test]
+    fn function_calls() {
+        assert_parses(Rule::function_call, "print()");
+        assert_parses(Rule::function_call, "print('b')");
+        assert_parses(Rule::function_call, "println(\"haha\", 'c', 2, 2*2)");
+        assert_parses(Rule::function_call, "println(double)");
+
+
+        assert_does_not_parse(Rule::function_call, "(\"haha\", 'c', 2, 2*2)");
+    }
 }
