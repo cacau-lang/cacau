@@ -1,4 +1,5 @@
 // -- Keywords
+// TODO: valid identifiers that start with a reserved keyword are failing
 
 keywords = _{
     if_
@@ -8,6 +9,9 @@ keywords = _{
     | struct_
     | pub_
     | else_
+    | not_
+    | true_
+    | false_
 }
     if_ = { "if" }
     then_ = { "then" }
@@ -16,6 +20,9 @@ keywords = _{
     struct_ = { "struct" }
     pub_ = { "pub" }
     else_ = { "else" }
+    not_ = { "not" }
+    true_ = { "true" }
+    false_ = { "false" }
 // -- Keywords
 
 
@@ -62,6 +69,12 @@ boolean = _{
     True = { "true" }
     False = { "false" }
 
+// The `not` operator
+not = { 
+    "not" ~ (identifier | boolean | curly_braced_expression | "(" ~ expression ~ ")" )
+}
+
+// The boolean binary operators
 boolean_op = _{ and | or }
     and = { "and" }
     or = { "or" }
@@ -69,7 +82,8 @@ boolean_op = _{ and | or }
 // A boolean expression: either a boolean value or a boolean operation
 // TODO: allow for variables in boolean expressions
 boolean_expr = {
-    boolean_term ~ (boolean_op ~ boolean_term)*
+    not
+    | boolean_term ~ (boolean_op ~ boolean_term)*
 }
 
 // A boolean term is either a boolean value (true or false)
@@ -96,17 +110,6 @@ math_op = _{ add | subtract | multiply | divide | power | modulo }
 
 math_expr = { math_term ~ (math_op ~ math_term)* }
 math_term = _{ num | "(" ~ math_expr ~ ")" }
-
-// Any value that would be acceptable in a Cacau string or char
-// char_value = _{
-//     LETTER |
-//     MARK |
-//     NUMBER |
-//     PUNCTUATION |
-//     SYMBOL |
-//     SEPARATOR |
-//     OTHER
-// }
 
 // A char of the form 'x', where x is any value in char_value
 char = { 
