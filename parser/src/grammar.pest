@@ -96,6 +96,23 @@ function_return = {
 	arrow ~ identifier
 }
 
+// A variant of an enum
+// E.g.
+//     Password(ZeroableString)
+//     Boolean(bool)
+enum_variant = {
+    identifier ~ "(" ~ identifier ~ ")" | identifier
+}
+
+/// A definition of an enum
+///
+/// E.g.
+///     pub enum NameOrId { Name(string), Id(Uuid) }
+///     enum MaybeString { Some(string), None }
+enum_definition = {
+    "pub"? ~ "enum" ~ identifier ~ "{" ~ (enum_variant ~ ",")* ~ enum_variant? ~ "}"
+}
+
 // The declaration of a function (without its body)
 // E.g.:
 //    fn main

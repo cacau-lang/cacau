@@ -184,4 +184,21 @@ mod parser_tests {
         assert_parses(Rule::boolean_expr, "false or (false and (true or (true and false)))");
         assert_parses(Rule::boolean_expr, "(false and (true or (true and false))) or (false and (true or (true and (true))))");
     }
+
+    #[test]
+    fn enum_definition() {
+        assert_parses(Rule::enum_definition, "pub enum NameOrId { Name(string), Id(Uuid) }");
+        assert_parses(Rule::enum_definition, "pub enum Status { Polling, Ready }");
+        assert_parses(Rule::enum_definition, "pub enum Status { Polling, Ready, }");
+        assert_parses(Rule::enum_definition, "pub enum NoVariant { }");
+        
+        assert_does_not_parse(Rule::enum_definition, "pub enum");
+
+        assert_does_not_parse(Rule::enum_definition, "pub enum NoVariantDoneWrong");
+
+        // Enum without name
+        assert_does_not_parse(Rule::enum_definition, "pub enum { Polling, Ready }");
+        // Wrong keyword
+        assert_does_not_parse(Rule::enum_definition, "pub enub Status { Polling, Ready }");
+    }
 }
