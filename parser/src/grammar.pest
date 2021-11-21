@@ -9,6 +9,12 @@ WHITESPACE = _{ (" " | NEWLINE) }
 alpha = _{ 'a'..'z' | 'A'..'Z' | "_" }
 digit = { '0'..'9' }
 arrow = { "->" }
+hex = _{ '0'..'9' | 'a'..'f' | 'A'..'F' }
+unicode_hex = { hex{1, 6} }
+predefined = { "n" | "r" | "t" | "\\" | "0" | "\"" | "'" }
+byte       = { "x" ~ hex{2} }
+unicode    = { "u" ~ "{" ~ unicode_hex ~ "}" }
+escape     = { "\\" ~ (predefined | byte | unicode) }
 
 // A valid identifier must not start with a digit
 identifier = @{ alpha ~ (alpha | digit)* }
@@ -28,9 +34,11 @@ num = { float | digit }
 
 // A boolean value.
 // Either true or false
-boolean = {
-    "true" | "false"
+boolean = _{
+    True | False
 }
+    True = { "true" }
+    False = { "false" }
 
 boolean_op = _{ and | or }
     and = { "and" }
@@ -60,24 +68,26 @@ math_expr = { math_term ~ (math_op ~ math_term)* }
 math_term = _{ num | "(" ~ math_expr ~ ")" }
 
 // Any value that would be acceptable in a Cacau string or char
-char_value = _{
-    LETTER |
-    MARK |
-    NUMBER |
-    PUNCTUATION |
-    SYMBOL |
-    SEPARATOR |
-    OTHER
-}
+// char_value = _{
+//     LETTER |
+//     MARK |
+//     NUMBER |
+//     PUNCTUATION |
+//     SYMBOL |
+//     SEPARATOR |
+//     OTHER
+// }
 
 // A char of the form 'x', where x is any value in char_value
-char = {
-    "'" ~ char_value ~ "'"
+char = { 
+    "'" ~ (escape | ANY) ~ "'" 
 }
 
+raw_string = { (!("\\" | "\"") ~ ANY)+ }
+
 // A string (sequence of characters), of the form "x.." where x is any value in char_value 
-string = {
-    "\"" ~ char_value* ~ "\""
+string = { 
+    "\"" ~ (raw_string | escape)* ~ "\""
 }
 
 expression = { integer }

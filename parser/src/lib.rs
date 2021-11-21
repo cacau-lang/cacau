@@ -172,10 +172,21 @@ mod parser_tests {
         assert_does_not_parse(Rule::char, "''");
     }
 
-    // #[test]
-    // fn string() {
-    //     assert_parses(Rule::string, "\"HELLO THERE\"");
-    // }
+    #[test]
+    fn string() {
+        assert_parses(Rule::string, "\"HELLO THERE\"");
+        assert_parses(Rule::string, "\"\"");
+
+        assert_parses(Rule::string, "\"órgão público\"");
+        
+        assert_does_not_parse(Rule::char, "''");
+
+        assert_does_not_parse(Rule::char, "\"");
+
+        assert_does_not_parse(Rule::char, "some text without enclosing double quotes");
+
+        assert_does_not_parse(Rule::char, "\"some text with missing closing double quotes");
+    }
 
     #[test]
     fn boolean() {
