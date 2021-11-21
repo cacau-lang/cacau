@@ -199,7 +199,7 @@ mod parser_tests {
         assert_parses(Rule::string, "\"\"");
 
         assert_parses(Rule::string, "\"órgão público\"");
-        
+
         assert_does_not_parse(Rule::char, "''");
 
         assert_does_not_parse(Rule::char, "\"");
@@ -294,7 +294,6 @@ mod parser_tests {
         assert_parses(Rule::expression, "(2-2) * (3+6)");
         assert_parses(Rule::expression, "(2-2) % (3+6)");
 
-
         assert_does_not_parse(Rule::math_expr, "-");
         assert_does_not_parse(Rule::math_expr, "()");
 
@@ -304,15 +303,26 @@ mod parser_tests {
 
     #[test]
     fn function_definition() {
-
         // TODO: Add identifiers here whenever possible
 
         assert_parses(Rule::function_definition, "fn two -> int { 2 }");
-        assert_parses(Rule::function_definition, "fn double x: int -> int { 2 + 2 }");
-        assert_parses(Rule::function_definition, "pub fn double x: int, b: bool, s: str -> SomeType { 2 * (2-3) ^ 5 }");
+        assert_parses(
+            Rule::function_definition,
+            "fn double x: int -> int { 2 + 2 }",
+        );
+        assert_parses(
+            Rule::function_definition,
+            "pub fn double x: int, b: bool, s: str -> SomeType { 2 * (2-3) ^ 5 }",
+        );
 
-        assert_does_not_parse(Rule::function_definition, "pub fn double x: int, b: bool, s: str -> SomeType { 2 * (2-3) ^ true }");
-        assert_does_not_parse(Rule::function_definition, "fn x: int -> int { true and (false) }");
+        assert_does_not_parse(
+            Rule::function_definition,
+            "pub fn double x: int, b: bool, s: str -> SomeType { 2 * (2-3) ^ true }",
+        );
+        assert_does_not_parse(
+            Rule::function_definition,
+            "fn x: int -> int { true and (false) }",
+        );
         assert_does_not_parse(Rule::function_definition, "2 + 2");
         assert_does_not_parse(Rule::function_definition, "2");
     }
@@ -323,14 +333,13 @@ mod parser_tests {
         assert_parses(Rule::program, "if true and false { false }");
         assert_parses(Rule::if_expr, "if true and false { false }");
 
-        assert_does_not_parse(Rule::if_expr, "if 2*6 { false }");        
+        assert_does_not_parse(Rule::if_expr, "if 2*6 { false }");
         assert_does_not_parse(Rule::program, "if true and false { 2*2 } else");
         assert_does_not_parse(Rule::program, "if true and false 2*2 ");
     }
 
     #[test]
     fn program() {
-
         // TODO: further testing
 
         let valid_program = r###"
@@ -356,5 +365,22 @@ mod parser_tests {
 
         assert_parses(Rule::program, valid_program);
         assert_does_not_parse(Rule::program, missing_else_expr);
+    }
+
+    #[test]
+    fn comparison() {
+        assert_parses(Rule::comparison, "x == y");
+        assert_parses(Rule::comparison, "2 != 3");
+        assert_parses(Rule::comparison, "x != y");
+        assert_parses(Rule::comparison, "x >= y");
+        assert_parses(Rule::comparison, "x <= y");
+        assert_parses(Rule::comparison, "x < y");
+        assert_parses(Rule::comparison, "x > y");
+        assert_parses(Rule::comparison, "\"abc\" > \"oop\"");
+
+        assert_does_not_parse(Rule::comparison, "x>");
+        assert_does_not_parse(Rule::comparison, "y<=");
+        assert_does_not_parse(Rule::comparison, "==");
+        assert_does_not_parse(Rule::comparison, "<= z");
     }
 }

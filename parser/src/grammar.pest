@@ -86,6 +86,16 @@ boolean_expr = {
     | boolean_term ~ (boolean_op ~ boolean_term)*
 }
 
+// Comparison checks
+// E.g.
+//      x == y
+comparison = {
+    expression ~ comparison_operator ~ expression
+}
+
+// TODO: name these operators?
+comparison_operator = { "==" | "!=" | ">=" | "<=" | ">" | "<" | "<="}
+
 // A boolean term is either a boolean value (true or false)
 // or a value that can be reduced to a boolean value (a boolean expression)
 boolean_term = _{
