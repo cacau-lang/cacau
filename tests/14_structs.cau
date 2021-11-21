@@ -1,0 +1,37 @@
+struct Person {
+    age: int,
+    height: float,
+    is_vaccinated: bool,
+    name: string,
+    coins: list<int>,
+}
+
+impl Person {
+    // Mutate self inplace
+    fn vaccinate self -> Self {
+        self.is_vaccinated = true;
+    }
+    // Return copy of self, but vaccinated
+    fn vaccinated_copy self -> Self {
+        let new = self;
+        new.is_vaccinated = true;
+        new
+    }
+}
+
+let joao = Person {
+    age: 21,
+    height: 1.84,
+    is_vaccinated: false,
+    name: "João Marcos",
+    coins: [10, 10, 25],
+};
+
+assert(not joao.is_vaccinated);
+
+let copy = joao.vaccinated_copy();
+assert(not joao.is_vaccinated);
+assert(copy.is_vaccinated);
+
+joao.vaccinate();
+assert(joao.is_vaccinated);

@@ -1,0 +1,33 @@
+// Implicit conversions
+
+assert(0.0 == 0);
+assert(0 == 0.0);
+assert(2 == 2.0);
+
+// Implicit + explicit
+assert(string(2 + 2.0) == "4.00000");
+
+// Explicit conversions
+assert(float(0) == 0.0);
+assert(int(0.0) == 0);
+
+assert(int(0.5) == 0);
+assert(int(55.1) == 55);
+
+assert(int("10" * 3) == 101010);
+assert(int("10" * 3) == 101010);
+assert(float("8.5") == 8.5);
+
+assert(string(0) == "0");
+assert(string(100) == "100");
+assert(string(100.0) == "100.00000");
+assert(string(0.0) == "0.00000");
+assert(string('1') == "1");
+assert(string(' ') == " ");
+assert(string(true) == "true");
+assert(string(false) == "false");
+
+// bool(int) <-> int != 0
+assert(bool(0) == false);
+assert(bool(1) == true);
+assert(bool(12345678) == true);

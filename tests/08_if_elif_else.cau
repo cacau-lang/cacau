@@ -1,0 +1,24 @@
+//
+
+let check1 = false;
+if true {
+    check1 = true;
+}
+assert(check1);
+
+//
+
+let number = 5;
+
+if number < 0 {
+    print("Negative.");
+    panic();
+} elif number == 0 {
+    print("Zero.");
+    panic();
+} else {
+    print("Positive");
+    number = 6;
+}
+
+assert(number == 6);

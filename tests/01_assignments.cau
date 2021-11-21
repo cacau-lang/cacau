@@ -1,0 +1,13 @@
+// This test does not contain assert, because we need to implement comparisons first.
+
+let text = "foo";
+let integer = 100;
+let decimal = 100.0;
+let character = '1';
+let truth = true;
+
+println(text);      // foo
+println(integer);   // 100
+println(decimal);   // 100.00000
+println(character); // 1
+println(truth); // true

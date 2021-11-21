@@ -1,0 +1,15 @@
+assert(list() == []);
+
+let lista = [5, 10, 15];
+assert(lista[0] == 5);
+assert(lista[1] == 10);
+assert(lista[2] == 15);
+assert(lista[-1] == 15);
+assert(lista[-2] == 10);
+assert(lista[-3] == 5);
+
+lista += 300;
+assert(lista[-1] == 300);
+
+lista += [1, 2, 3, 4, 5, 6, 7];
+assert(lista == [5, 10, 15, 300, 1, 2, 3, 4, 5, 6, 7]);

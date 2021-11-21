@@ -1,0 +1,27 @@
+let a = 10;
+a = a + 10;
+assert(a == 20);
+
+let i = 0;
+i += 1;
+i %= 2;
+assert(i == 1);
+i += 1;
+i %= 2;
+assert(i == 2);
+
+let text = string(123);
+text += "oi";
+assert(text == "123oi");
+
+let area = 5.0;
+area *= 2; // ok!
+assert(area > 31.4);
+
+// let area = 5;
+// area *= 2.0; // error!
+// assert(area > 31.4);
+
+let boolean = false;
+boolean = not boolean;
+assert(boolean);

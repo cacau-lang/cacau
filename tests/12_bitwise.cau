@@ -1,0 +1,19 @@
+// bitwise operators are used for fixed size primitives and non-short circuit boleans
+
+assert(true & true == true);
+assert(true & false == false);
+assert(true & (false | true) == false);
+assert(true & (false | true) == false);
+
+fn bool_but_panic -> bool {
+    panic();
+    true
+}
+
+// Using short circuit to not panic
+// assert(true || bool_but_panic()); // no panic
+// assert(true | bool_but_panic()); // panics
+// assert(false && bool_but_panic()); // no panic
+// assert(false & bool_but_panic()); // panics
+
+// How to test this one? We'll need a function like assert_panic???

@@ -1,0 +1,57 @@
+assert(true);
+
+// Unresolved question:
+//   - Should these "compile"?
+// assert(2.0 == 2); // yes
+// assert("2" != 2); // no
+// assert("2.0" != 2.0); // no
+// assert("true" != true); // no
+//
+// See casting test.
+
+let text = "foo";
+assert(text == "foo");
+assert(text >= "foo");
+assert(text <= "foo");
+assert(text > "aaa");
+assert(text >= "aaa");
+assert(text < "zzz");
+assert(text <= "zzz");
+assert(text != "bar");
+
+let integer = 10;
+assert(integer == 10);
+assert(integer >= 10);
+assert(integer <= 10);
+assert(integer > 5);
+assert(integer >= 5);
+assert(integer < 20);
+assert(integer <= 20);
+assert(integer != 0);
+
+let decimal = 100.0;
+assert(integer == 10.0);
+assert(integer >= 10.0);
+assert(integer <= 10.0);
+assert(integer > 5.0);
+assert(integer >= 5.0);
+assert(integer < 20.0);
+assert(integer <= 20.0);
+assert(integer != 0.0);
+
+let character = '1';
+assert(character == '1');
+assert(character >= '1');
+assert(character <= '1');
+assert(character > '0');
+assert(character >= '0');
+assert(character < '2');
+assert(character <= '2');
+assert(character != '0');
+
+let truth = true;
+assert(truth);
+assert(truth == true);
+assert(truth != false);
+assert(truth != false != false);
+assert(truth != false == true);

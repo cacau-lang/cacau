@@ -1,0 +1,24 @@
+let sum = fn a, b { a + b };
+assert(sum(1, 2) == 3);
+
+let multiply_by_two = fn x { x * 2 };
+assert(multiply_by_two(1) == 2);
+assert(multiply_by_two(2) == 4);
+assert(multiply_by_two(6) == 6);
+
+let median_of_three = fn a, b, c {
+    if a > b {
+        (a, b) = (b, a);
+    }
+    if b > c {
+        (b, c) = (c, b);
+    }
+    if a > b {
+        a
+    } else {
+        b
+    }
+};
+assert(median_of_three(3, 2, 1) == 2);
+assert(median_of_three(5, 5, 4) == 5);
+assert(median_of_three(0, 100, 50) == 50);

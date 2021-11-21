@@ -1,0 +1,23 @@
+let (a, b) = (10, 20);
+let tuple = (a, b);
+
+assert(tuple == (10, 20));
+
+assert(tuple[0] == 10);
+assert(tuple[1] == 20);
+
+assert(tuple.get(0) == Some(10));
+assert(tuple.get(1) == Some(20));
+assert(tuple.get(2) == None);
+assert(tuple.get(3) == None);
+
+let tuple = (1, 2, 3, 4);
+
+// -0 is same as 0
+assert(tuple.get(-0) == Some(1));
+assert(tuple.get(-1) == Some(4));
+assert(tuple.get(-2) == Some(3));
+assert(tuple.get(-3) == Some(2));
+assert(tuple.get(-4) == Some(1));
+assert(tuple.get(-5) == None);
+assert(tuple.get(-6) == None);

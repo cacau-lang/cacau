@@ -1,0 +1,8 @@
+// First ever hello world with Cacau!
+print("Hello World");
+print('!');
+
+// More
+print(" The Cacau Lang project was created at ");
+print(2021);
+print('.');

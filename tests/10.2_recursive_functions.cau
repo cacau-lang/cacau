@@ -1,0 +1,47 @@
+fn factorial n: int -> int {
+    if n <= 1 {
+        1
+    } else {
+        factorial(n - 1) * n
+    }
+}
+
+assert(factorial(0) == 1);
+assert(factorial(1) == 1);
+assert(factorial(2) == 2);
+assert(factorial(3) == 6);
+assert(factorial(4) == 24);
+assert(factorial(5) == 120);
+
+fn fibonacci n: int -> int {
+    if n <= 2 {
+        n
+    } else {
+        fibonacci(n - 2) + fibonacci(n - 1)
+    }
+}
+
+assert(fibonacci(0) == 0);
+assert(fibonacci(1) == 1);
+assert(fibonacci(2) == 2);
+assert(fibonacci(3) == 3);
+assert(fibonacci(4) == 5);
+assert(fibonacci(5) == 8);
+assert(fibonacci(6) == 13);
+assert(fibonacci(7) == 21);
+assert(fibonacci(8) == 34);
+assert(fibonacci(9) == 55);
+
+// To test this one, we would need to check for the STDOUT of the program.
+fn count_up_to_n i: int, n: int {
+    if i < n {
+        println(i);
+        count_up_to_n(i + 1, n);
+    }
+}
+
+fn count_from_zero_to_ten {
+    count_up_to_n(0, 10);
+}
+
+count_from_zero_to_ten();

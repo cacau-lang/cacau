@@ -1,0 +1,19 @@
+//
+
+let number = 5;
+
+let text = if number < 0 {
+    "Negative"
+} elif number == 0 {
+    "Zero"
+} else {
+    "Positive"
+};
+assert(text == "Positive");
+
+// // This should not be allowed, if without else, possibly uninit
+// let text = if true {
+//     "alo"
+// };
+//
+// assert(text == "alo");
