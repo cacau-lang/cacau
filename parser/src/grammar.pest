@@ -12,6 +12,7 @@ keywords = _{
     | not_
     | true_
     | false_
+    | elif_
 }
     if_ = { "if" }
     then_ = { "then" }
@@ -23,6 +24,7 @@ keywords = _{
     not_ = { "not" }
     true_ = { "true" }
     false_ = { "false" }
+    elif_ = { "elif" }
 // -- Keywords
 
 
