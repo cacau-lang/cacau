@@ -22,6 +22,33 @@ float = {
     integer ~ "." ~ integer
 }
 
+// A boolean value.
+// Either true or false
+boolean = {
+    "true" | "false"
+}
+
+// Any value that would be acceptable in a Cacau string or char
+char_value = _{
+    LETTER |
+    MARK |
+    NUMBER |
+    PUNCTUATION |
+    SYMBOL |
+    SEPARATOR |
+    OTHER
+}
+
+// A char of the form 'x', where x is any value in char_value
+char = {
+    "'" ~ char_value ~ "'"
+}
+
+// A string (sequence of characters), of the form "x.." where x is any value in char_value 
+string = {
+    "\"" ~ char_value* ~ "\""
+}
+
 expression = { integer }
 
 // Type annotation of the form ": type_name"

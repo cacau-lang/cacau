@@ -148,4 +148,30 @@ mod parser_tests {
         // Incorrect argument specification
         // assert_does_not_parse(Rule::function_declaration, "fn func x: -> bool");
     }
+
+    #[test]
+    fn char() {
+        // TODO: ideally check that Unicode values parse
+
+        for ch in 'a' .. 'Z' {
+            let ch = format!("'{}'", ch);
+            assert_parses(Rule::char, &ch);
+        }
+
+        assert_does_not_parse(Rule::char, "''");
+    }
+
+    // #[test]
+    // fn string() {
+    //     assert_parses(Rule::string, "\"HELLO THERE\"");
+    // }
+
+    #[test]
+    fn boolean() {
+        assert_parses(Rule::boolean, "true");
+        assert_parses(Rule::boolean, "false");
+
+        assert_does_not_parse(Rule::boolean, "False");
+        assert_does_not_parse(Rule::boolean, "Talse");
+    }
 }
