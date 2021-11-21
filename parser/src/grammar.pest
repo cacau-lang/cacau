@@ -1,4 +1,23 @@
-// TODO: add a "new type" for identifier used only when types are expected
+// -- Keywords
+
+keywords = _{
+    if_
+    | then_
+    | let_
+    | enum_
+    | struct_
+    | pub_
+    | else_
+}
+    if_ = { "if" }
+    then_ = { "then" }
+    let_ = { "let" }
+    enum_ = { "enum" }
+    struct_ = { "struct" }
+    pub_ = { "pub" }
+    else_ = { "else" }
+// -- Keywords
+
 
 // Once WHITESPACE is defined, pest allows arbitrary whitespace between tokens 
 WHITESPACE = _{ (" " | NEWLINE) }
@@ -16,8 +35,11 @@ byte       = { "x" ~ hex{2} }
 unicode    = { "u" ~ "{" ~ unicode_hex ~ "}" }
 escape     = { "\\" ~ (predefined | byte | unicode) }
 
+
+ascii_seq = @{ alpha ~ (alpha | digit)* }
+
 // A valid identifier must not start with a digit
-identifier = @{ alpha ~ (alpha | digit)* }
+identifier = @{ !keywords ~ ascii_seq }
 
 // An integer consists of one or more digits
 // TODO: add support for underlines?
@@ -53,7 +75,7 @@ boolean_expr = {
 // A boolean term is either a boolean value (true or false)
 // or a value that can be reduced to a boolean value (a boolean expression)
 boolean_term = _{
-    boolean | "(" ~ boolean_expr ~ ")" 
+    identifier | boolean | "(" ~ boolean_expr ~ ")"
 }
 
 if_expr = _{

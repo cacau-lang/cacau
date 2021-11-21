@@ -34,11 +34,17 @@ mod parser_tests {
     }
 
     #[test]
-    fn valid_identifiers() {
+    fn identifiers() {
         assert_parses(Rule::identifier, "a");
         assert_parses(Rule::identifier, "_abc");
         assert_parses(Rule::identifier, "abc_123");
         assert_parses(Rule::identifier, "zazz123");
+
+        // Keywords are reserved
+        assert_does_not_parse(Rule::identifier, "let");
+        assert_does_not_parse(Rule::identifier, "if");
+        assert_does_not_parse(Rule::identifier, "then");
+        assert_does_not_parse(Rule::identifier, "else");
     }
 
     // TODO: this test is failing ;-;
