@@ -286,4 +286,19 @@ mod parser_tests {
         assert_does_not_parse(Rule::expression, "()");
         assert_does_not_parse(Rule::math_expr, "*3");
     }
+
+    #[test]
+    fn function_definition() {
+
+        // TODO: Add identifiers here whenever possible
+
+        assert_parses(Rule::function_definition, "fn two -> int { 2 }");
+        assert_parses(Rule::function_definition, "fn double x: int -> int { 2 + 2 }");
+        assert_parses(Rule::function_definition, "pub fn double x: int, b: bool, s: str -> SomeType { 2 * (2-3) ^ 5 }");
+
+        assert_does_not_parse(Rule::function_definition, "pub fn double x: int, b: bool, s: str -> SomeType { 2 * (2-3) ^ true }");
+        assert_does_not_parse(Rule::function_definition, "fn x: int -> int { true and (false) }");
+        assert_does_not_parse(Rule::function_definition, "2 + 2");
+        assert_does_not_parse(Rule::function_definition, "2");
+    }
 }

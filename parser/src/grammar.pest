@@ -110,7 +110,7 @@ expression = {
 // A Cacau program
 program = {
     SOI ~
-    expression+ ~
+    (function_definition | struct_definition | enum_definition | expression )+ ~
     EOI
 }
 
@@ -166,6 +166,14 @@ enum_definition = {
 //    fn is_even n: int -> bool
 function_declaration = {
   "pub"? ~ "fn" ~ identifier ~ (function_argument ~ ",")* ~ function_argument? ~ function_return?
+}
+
+// The definition of a function
+// E.g.:
+//     fn is_even n: int -> bool { n % 2 == 0 }
+//     pub fn is_zero n: int -> bool { n == 0 }
+function_definition = {
+    function_declaration ~ expression
 }
 
 // A field of a struct
