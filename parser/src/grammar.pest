@@ -1,3 +1,5 @@
+// TODO: add a "new type" for identifier used only when types are expected
+
 // Once WHITESPACE is defined, pest allows arbitrary whitespace between tokens 
 WHITESPACE = _{ (" " | NEWLINE) }
 
@@ -120,6 +122,21 @@ enum_definition = {
 //    fn is_even n: int -> bool
 function_declaration = {
   "pub"? ~ "fn" ~ identifier ~ (function_argument ~ ",")* ~ function_argument? ~ function_return?
+}
+
+// A field of a struct
+// E.g.
+//     pub username: string
+//     age: int
+struct_field = {
+    "pub"? ~ identifier ~ ":" ~ identifier
+}
+
+// A definition of a struct
+// E.g.
+//     pub struct User { pub username: string, age: int, birth_date: Date }
+struct_definition = {
+    "pub"? ~ "struct" ~ identifier ~ "{" ~ (struct_field ~ ",")* ~ struct_field? ~ "}"
 }
 
 file = {

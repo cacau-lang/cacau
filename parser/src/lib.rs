@@ -201,4 +201,18 @@ mod parser_tests {
         // Wrong keyword
         assert_does_not_parse(Rule::enum_definition, "pub enub Status { Polling, Ready }");
     }
+
+
+    #[test]
+    fn struct_definition() {
+        assert_parses(Rule::struct_definition, "struct User { }");
+        assert_parses(Rule::struct_definition, "pub struct User { }");
+        assert_parses(Rule::struct_definition, "pub struct User { pub username: string, age: int, birth_date: Date }");
+
+        // Missing braces
+        assert_does_not_parse(Rule::struct_definition, "struct User");
+
+        // Missing type for field
+        assert_does_not_parse(Rule::struct_definition, "pub struct User { pub username: , age: int, birth_date: Date }");
+    }
 }
