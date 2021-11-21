@@ -4,7 +4,7 @@ WHITESPACE = _{ (" " | NEWLINE) }
 // Silenced so that error messages show up as "expected identifier"
 // instead of "expected alpha"
 // TODO: add underline
-alpha = _{ 'a'..'z' | 'A'..'Z'}
+alpha = _{ 'a'..'z' | 'A'..'Z' | "_" }
 digit = { '0'..'9' }
 arrow = { "->" }
 
@@ -12,6 +12,7 @@ arrow = { "->" }
 identifier = @{ alpha ~ (alpha | digit)* }
 
 // An integer consists of one or more digits
+// TODO: add support for underlines?
 integer = @{
     ASCII_DIGIT+
 }
@@ -59,7 +60,6 @@ function_return = {
 function_declaration = {
   "pub"? ~ "fn" ~ identifier ~ (function_argument ~ ",")* ~ function_argument? ~ function_return?
 }
-
 
 file = {
     SOI ~

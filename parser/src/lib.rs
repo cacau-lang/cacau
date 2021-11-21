@@ -27,6 +27,8 @@ mod parser_tests {
     fn single_char_identifiers() {
         assert_parses(Rule::identifier, "x");
         assert_parses(Rule::identifier, "z");
+        assert_parses(Rule::identifier, "_");
+
 
         assert_does_not_parse(Rule::identifier, "2");
         assert_does_not_parse(Rule::identifier, "7");   
@@ -35,8 +37,8 @@ mod parser_tests {
     #[test]
     fn valid_identifiers() {
         assert_parses(Rule::identifier, "a");
-        assert_parses(Rule::identifier, "abc");
-        assert_parses(Rule::identifier, "abc123");
+        assert_parses(Rule::identifier, "_abc");
+        assert_parses(Rule::identifier, "abc_123");
         assert_parses(Rule::identifier, "zazz123");
     }
 
@@ -123,13 +125,13 @@ mod parser_tests {
     fn function_declaration() {
         // TODO: rewrite these function indentifiers whenever the underline is available
         assert_parses(Rule::function_declaration, "fn main");
-        assert_parses(Rule::function_declaration, "pub fn noargsbutreturnssomething -> int");
-        assert_parses(Rule::function_declaration, "fn noargsbutreturnssomething -> int");
-        assert_parses(Rule::function_declaration, "fn oneargnoreturn x: int");
-        assert_parses(Rule::function_declaration, "fn oneargonereturn x: int -> int");
-        assert_parses(Rule::function_declaration, "fn severalargs x: int, y: int");
-        assert_parses(Rule::function_declaration, "pub fn severalargs x: int, y: int");
-        assert_parses(Rule::function_declaration, "fn severalargswithreturn x: int, y: int, z: int -> bool");
+        assert_parses(Rule::function_declaration, "pub fn no_args_but_returns_something -> int");
+        assert_parses(Rule::function_declaration, "fn no_args_but_returns_something -> int");
+        assert_parses(Rule::function_declaration, "fn one_arg_no_return x: int");
+        assert_parses(Rule::function_declaration, "fn one_arg_one_return x: int -> int");
+        assert_parses(Rule::function_declaration, "fn several_args x: int, y: int");
+        assert_parses(Rule::function_declaration, "pub fn several_args x: int, y: int");
+        assert_parses(Rule::function_declaration, "fn several_args_with_return x: int, y: int, z: int -> bool");
 
 
         assert_does_not_parse(Rule::function_declaration, "fn");
