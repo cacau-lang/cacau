@@ -174,4 +174,14 @@ mod parser_tests {
         assert_does_not_parse(Rule::boolean, "False");
         assert_does_not_parse(Rule::boolean, "Talse");
     }
+
+    #[test]
+    fn boolean_operations() {
+        assert_parses(Rule::boolean_expr, "true and false");
+        assert_parses(Rule::boolean_expr, "false or true");
+        assert_parses(Rule::boolean_expr, "false or (false and true)");
+        assert_parses(Rule::boolean_expr, "false or (false and (true or false))");
+        assert_parses(Rule::boolean_expr, "false or (false and (true or (true and false)))");
+        assert_parses(Rule::boolean_expr, "(false and (true or (true and false))) or (false and (true or (true and (true))))");
+    }
 }

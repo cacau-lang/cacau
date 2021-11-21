@@ -28,6 +28,23 @@ boolean = {
     "true" | "false"
 }
 
+boolean_op = _{ and | or }
+    and = { "and" }
+    or = { "or" }
+
+// A boolean expression: either a boolean value or a boolean operation
+// TODO: allow for variables in boolean expressions
+boolean_expr = {
+    boolean_term ~ (boolean_op ~ boolean_term)*
+}
+
+// A boolean term is either a boolean value (true or false)
+// or a value that can be reduced to a boolean value (a boolean expression)
+boolean_term = _{
+    boolean | "(" ~ boolean_expr ~ ")" 
+}
+
+
 // Any value that would be acceptable in a Cacau string or char
 char_value = _{
     LETTER |
