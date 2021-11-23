@@ -28,7 +28,7 @@ keywords = _{
 // -- Keywords
 
 
-// Once WHITESPACE is defined, pest allows arbitrary whitespace between tokens 
+// Once WHITESPACE is defined, pest allows arbitrary whitespace between tokens
 WHITESPACE = _{ (" " | NEWLINE) }
 
 COMMENT = _{ "//" ~ (!"\n" ~ ANY)* }
@@ -63,7 +63,7 @@ float = {
     integer ~ "." ~ integer
 }
 
-num = { float | digit }
+num = { float | integer }
 
 // A boolean value.
 // Either true or false
@@ -74,7 +74,7 @@ boolean = _{
     False = { "false" }
 
 // The `not` operator
-not = { 
+not = {
     "not" ~ (identifier | boolean | curly_braced_expression | "(" ~ expression ~ ")" )
 }
 
@@ -120,8 +120,8 @@ math_op = _{ add | subtract | multiply | divide | power | modulo }
     power    = { "^" }
     modulo    = { "%" }
 
-math_expr = { 
-    math_term ~ (math_op ~ math_term)* 
+math_expr = {
+    math_term ~ (math_op ~ math_term)*
 }
 math_term = _{ unary_minus | num | identifier | "(" ~ math_expr ~ ")" }
 
@@ -130,14 +130,14 @@ unary_minus = {
 }
 
 // A char of the form 'x', where x is any value in char_value
-char = { 
-    "'" ~ (escape | ANY) ~ "'" 
+char = {
+    "'" ~ (escape | ANY) ~ "'"
 }
 
 raw_string = { (!("\\" | "\"") ~ ANY)+ }
 
-// A string (sequence of characters), of the form "x.." where x is any value in char_value 
-string = { 
+// A string (sequence of characters), of the form "x.." where x is any value in char_value
+string = {
     "\"" ~ (raw_string | escape)* ~ "\""
 }
 
