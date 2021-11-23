@@ -1,7 +1,11 @@
+#[macro_use]
+extern crate pest_ast;
+
 pub use pest::Parser as ParserTrait;
 
-
 use pest_derive::Parser;
+
+pub mod ast;
 
 #[derive(Parser)]
 #[grammar = "grammar.pest"]
@@ -344,14 +348,25 @@ mod parser_tests {
     #[test]
     fn elif() {
         assert_parses(Rule::if_expr, "if some_condition { 2*2 }");
-        assert_parses(Rule::if_expr, "if some_condition { 2*2 } elif another_condition { 4* 4} ");
-        assert_parses(Rule::if_expr, "if some_condition { 2*2 } elif another_condition { 4* 4} else { 6*6 } ");
-        
-        assert_does_not_parse(Rule::if_expr, "if some_condition ");
-        assert_does_not_parse(Rule::if_expr, "if some_condition  elif another_condition { 4* 4} ");
-        assert_does_not_parse(Rule::program, "if some_condition { 2*2 } elif another_condition { 4* 4} else ");
-    }
+        assert_parses(
+            Rule::if_expr,
+            "if some_condition { 2*2 } elif another_condition { 4* 4} ",
+        );
+        assert_parses(
+            Rule::if_expr,
+            "if some_condition { 2*2 } elif another_condition { 4* 4} else { 6*6 } ",
+        );
 
+        assert_does_not_parse(Rule::if_expr, "if some_condition ");
+        assert_does_not_parse(
+            Rule::if_expr,
+            "if some_condition  elif another_condition { 4* 4} ",
+        );
+        assert_does_not_parse(
+            Rule::program,
+            "if some_condition { 2*2 } elif another_condition { 4* 4} else ",
+        );
+    }
 
     #[test]
     fn program() {
@@ -362,12 +377,12 @@ mod parser_tests {
             pub name: string,
             password: ZeroableString
          }
-         
+
         pub enum User {
             Admin(UserData),
             Regular(UserData),
         }
-         
+
         pub fn four -> int {
            2 + 2
         }"###;
@@ -399,14 +414,12 @@ mod parser_tests {
         assert_does_not_parse(Rule::comparison, "<= z");
     }
 
-
     #[test]
     fn function_calls() {
         assert_parses(Rule::function_call, "print()");
         assert_parses(Rule::function_call, "print('b')");
         assert_parses(Rule::function_call, "println(\"haha\", 'c', 2, 2*2)");
         assert_parses(Rule::function_call, "println(double)");
-
 
         assert_does_not_parse(Rule::function_call, "(\"haha\", 'c', 2, 2*2)");
     }
