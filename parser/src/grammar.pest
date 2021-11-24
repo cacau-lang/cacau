@@ -1,6 +1,13 @@
 // -- Keywords
 // TODO: valid identifiers that start with a reserved keyword are failing
 
+// A Cacau program
+program = _{
+    SOI ~
+    (function_definition | struct_definition | enum_definition | expression )* ~
+    EOI
+}
+
 keywords = _{
     if_
     | let_
@@ -36,24 +43,20 @@ WHITESPACE = _{ (" " | NEWLINE) }
 
 COMMENT = _{ "//" ~ (!"\n" ~ ANY)* }
 
-// Silenced so that error messages show up as "expected identifier"
-// instead of "expected alpha"
 // TODO: add underline
-alpha = _{ 'a'..'z' | 'A'..'Z' | "_" }
-digit = { '0'..'9' }
-arrow = { "->" }
-hex   = _{ '0'..'9' | 'a'..'f' | 'A'..'F' }
+digit       = { '0'..'9' }
+arrow       = { "->" }
+hex         = _{ '0'..'9' | 'a'..'f' | 'A'..'F' }
 unicode_hex = { hex{1, 4} }
 predefined  = { "n" | "r" | "t" | "\\" | "0" | "\"" | "'" }
 byte        = { "x" ~ hex{2} }
 unicode     = { "u" ~ "{" ~ unicode_hex ~ "}" }
-escape      = { "\\" ~ (predefined | byte | unicode) }
-
-
-ascii_seq = @{ alpha ~ (alpha | digit)* }
+escape_seq  = { "\\" ~ (predefined | byte | unicode) }
 
 // A valid identifier must not start with a digit
-identifier = @{ !keywords ~ ascii_seq }
+identifier = @{ !keywords ~ ascii_identifier }
+    ascii_identifier = @{ alpha_or_underline ~ (alpha_or_underline | digit)* }
+        alpha_or_underline = _{ 'a'..'z' | 'A'..'Z' | "_" }
 
 // An integer consists of one or more digits
 // TODO: add support for underlines?
@@ -134,14 +137,14 @@ unary_minus = {
 
 // A char of the form 'x', where x is any value in char_value
 char = {
-    "'" ~ (escape | ANY) ~ "'"
+    "'" ~ (escape_seq | ANY) ~ "'"
 }
 
 raw_string = { (!("\\" | "\"") ~ ANY)+ }
 
 // A string (sequence of characters), of the form "x.." where x is any value in char_value
 string = {
-    "\"" ~ (raw_string | escape)* ~ "\""
+    "\"" ~ (raw_string | escape_seq)* ~ "\""
 }
 
 statement = {
@@ -162,13 +165,6 @@ expression = {
     "{" ~ expression ~ "}"
     | statement ~ ";"
     | statement
-}
-
-// A Cacau program
-program = _{
-    SOI ~
-    (function_definition | struct_definition | enum_definition | expression )+ ~
-    EOI
 }
 
 // Type annotation of the form ": type_name"
