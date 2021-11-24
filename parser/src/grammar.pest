@@ -42,12 +42,12 @@ COMMENT = _{ "//" ~ (!"\n" ~ ANY)* }
 alpha = _{ 'a'..'z' | 'A'..'Z' | "_" }
 digit = { '0'..'9' }
 arrow = { "->" }
-hex = _{ '0'..'9' | 'a'..'f' | 'A'..'F' }
-unicode_hex = { hex{1, 6} }
-predefined = { "n" | "r" | "t" | "\\" | "0" | "\"" | "'" }
-byte       = { "x" ~ hex{2} }
-unicode    = { "u" ~ "{" ~ unicode_hex ~ "}" }
-escape     = { "\\" ~ (predefined | byte | unicode) }
+hex   = _{ '0'..'9' | 'a'..'f' | 'A'..'F' }
+unicode_hex = { hex{1, 4} }
+predefined  = { "n" | "r" | "t" | "\\" | "0" | "\"" | "'" }
+byte        = { "x" ~ hex{2} }
+unicode     = { "u" ~ "{" ~ unicode_hex ~ "}" }
+escape      = { "\\" ~ (predefined | byte | unicode) }
 
 
 ascii_seq = @{ alpha ~ (alpha | digit)* }
@@ -121,7 +121,7 @@ math_op = _{ add | subtract | multiply | divide | power | modulo }
     multiply = { "*" }
     divide   = { "/" }
     power    = { "^" }
-    modulo    = { "%" }
+    modulo   = { "%" }
 
 math_expr = {
     math_term ~ (math_op ~ math_term)*
