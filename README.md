@@ -1,15 +1,15 @@
-# Reads numbers and turns them into ASTs
+# Reads stuff and turns them into ASTs
 
-So, this is a WIP. Works only with the "num" pest rule
+So, this is a WIP. Works only with the following rules: num, integer, float, identifier
 
 To run it, it's like,
 
 ```console
-echo 1.55 | cargo run /dev/stdin
-```
+echo 1.55 | cargo run num
+echo 1.55 | cargo run float
 
-Or
+echo 1 | cargo run num
+echo 1 | cargo run integer
 
-```console
-echo 1 | cargo run /dev/stdin
+echo x | cargo run identifier
 ```

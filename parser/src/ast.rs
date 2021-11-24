@@ -32,3 +32,13 @@ pub enum NumLiteral<'pest> {
     Float(FloatLiteral<'pest>),
     Integer(IntegerLiteral<'pest>),
 }
+
+#[derive(Debug, FromPest)]
+#[pest_ast(rule(Rule::identifier))]
+pub struct Identifier<'pest> {
+    #[pest_ast(outer(with(span_into_str)))]
+    pub value: &'pest str,
+
+    #[pest_ast(outer())]
+    pub span: Span<'pest>,
+}

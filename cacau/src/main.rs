@@ -1,21 +1,37 @@
-use std::{env, fs};
+use std::{env, fs, fmt::Debug};
 
 use from_pest::FromPest;
 
 use parser::{ExpressionParser, ParserTrait, Rule};
 
-use parser::ast::NumLiteral;
+use parser::ast::*;
 
 fn main() {
-    let file = env::args_os().skip(1).next().expect("no file supplied");
+    let mut args = env::args_os().skip(1);
+
+    let rule_name = args.next().expect("no rule supplied");
+
+    let mut file = args.next().unwrap_or("".into());
+
+    if file == "-" || file == "" {
+        file = "/dev/stdin".into()
+    }
 
     let contents = fs::read_to_string(file).unwrap();
 
-    let mut parsed = ExpressionParser::parse(Rule::num, &contents).expect("failed to parse");
+    let (rule, build_ast) = match rule_name.to_str().unwrap() {
+        "num" => (Rule::num, Box::new(|p| Box::new(NumLiteral::from_pest(p).unwrap()) as Box<dyn Debug>) as Box<dyn FnOnce(_) -> _>),
+        "float" => (Rule::float, Box::new(|p| Box::new(FloatLiteral::from_pest(p).unwrap()) as Box<dyn Debug>) as Box<dyn FnOnce(_) -> _>),
+        "integer" => (Rule::integer, Box::new(|p| Box::new(IntegerLiteral::from_pest(p).unwrap()) as Box<dyn Debug>) as Box<dyn FnOnce(_) -> _>),
+        "identifier" => (Rule::identifier, Box::new(|p| Box::new(Identifier::from_pest(p).unwrap()) as Box<dyn Debug>) as Box<dyn FnOnce(_) -> _>),
+        name => panic!("unknown rule {}", name),
+    };
+
+    let mut parsed = ExpressionParser::parse(rule, &contents).expect("failed to parse");
 
     println!("parsed: {:#?}", parsed);
 
-    let ast = NumLiteral::from_pest(&mut parsed).expect("mas devia ter dado certo");
+    let ast = build_ast(&mut parsed);
 
     println!("(whats left): {}", parsed);
 
