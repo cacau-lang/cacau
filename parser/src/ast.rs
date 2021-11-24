@@ -24,14 +24,6 @@ pub struct FloatLiteral<'pest> {
 
     #[pest_ast(outer())]
     pub span: Span<'pest>,
-
-    // pest-ast requires consuming all inner matches for some ungodly reason
-    //
-    // TODO: send a PR to fix this
-    #[pest_ast(inner())]
-    __inner1: Span<'pest>,
-    #[pest_ast(inner())]
-    __inner2: Span<'pest>,
 }
 
 #[derive(Debug, FromPest)]

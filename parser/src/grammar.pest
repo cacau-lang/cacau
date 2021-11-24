@@ -59,7 +59,7 @@ integer = @{
 }
 
 // A float is two integers joined by a dot
-float = {
+float = @{
     integer ~ "." ~ integer
 }
 
