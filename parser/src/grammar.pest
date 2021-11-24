@@ -3,8 +3,8 @@
 
 keywords = _{
     if_
-    | then_
     | let_
+    | const_
     | enum_
     | struct_
     | pub_
@@ -13,9 +13,11 @@ keywords = _{
     | true_
     | false_
     | elif_
+    | fn_
+    | for_
 }
     if_ = { "if" }
-    then_ = { "then" }
+    const_ = { "const" }
     let_ = { "let" }
     enum_ = { "enum" }
     struct_ = { "struct" }
@@ -25,8 +27,9 @@ keywords = _{
     true_ = { "true" }
     false_ = { "false" }
     elif_ = { "elif" }
+    fn_ = { "fn" }
+    for_ = { "for" }
 // -- Keywords
-
 
 // Once WHITESPACE is defined, pest allows arbitrary whitespace between tokens
 WHITESPACE = _{ (" " | NEWLINE) }
