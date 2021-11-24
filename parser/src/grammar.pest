@@ -59,9 +59,8 @@ identifier = @{ !keywords ~ ascii_identifier }
         alpha_or_underline = _{ 'a'..'z' | 'A'..'Z' | "_" }
 
 // An integer consists of one or more digits
-// TODO: add support for underlines?
 integer = @{
-    ASCII_DIGIT+
+    digit ~ (("_" ~ digit) | digit)*
 }
 
 // A float is two integers joined by a dot
