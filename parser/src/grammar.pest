@@ -1,248 +1,182 @@
-// -- Keywords
-// TODO: valid identifiers that start with a reserved keyword are failing
+/* // TODO: make this work
+impl Vec2 {
+    pub fn @init x: int, y: int {
+        Vec2 { x, y }
+    }
+}
+*/
 
-// A Cacau program
-program = _{
-    SOI ~
-    (function_definition | struct_definition | enum_definition | expression )* ~
-    EOI
+
+// The Cacau program
+Program = _{ SOI ~ (Statement)* ~ EOI }
+
+// -- Start of 'Expression' --
+
+Expression = {
+    Block
+    | FunctionCall
+    | OperatorExpression
+    | IfExpression
+    | Literal
+    | Identifier
 }
 
-keywords = _{
-    if_
-    | let_
-    | const_
-    | enum_
-    | struct_
-    | pub_
-    | else_
-    | not_
-    | true_
-    | false_
-    | elif_
-    | fn_
-    | for_
-}
-    if_ = { "if" }
-    const_ = { "const" }
-    let_ = { "let" }
-    enum_ = { "enum" }
-    struct_ = { "struct" }
-    pub_ = { "pub" }
-    else_ = { "else" }
-    not_ = { "not" }
-    true_ = { "true" }
-    false_ = { "false" }
-    elif_ = { "elif" }
-    fn_ = { "fn" }
-    for_ = { "for" }
-// -- Keywords
+Block = { "{" ~ Statement* ~ Expression? ~ "}" }
 
-// Once WHITESPACE is defined, pest allows arbitrary whitespace between tokens
+// LEFT-RECURSIVE PROBLEM | USE ELIAS HELP
+// TODO: function call is using Identifier instead of Expression, for now.
+// FunctionCall = { Expression ~ "(" ~ FunctionCallArgumentList ~ ")" }
+FunctionCall = { Identifier ~ "(" ~ FunctionCallArgumentList ~ ")" }
+    FunctionCallArgumentList = { CommaSeparatedFunctionArgumentList }
+
+OperatorExpression = { UnaryOperation }
+// LEFT-RECURSIVE PROBLEM | USE ELIAS HELP
+// OperatorExpression = { UnaryOperation | BinaryOperation }
+    UnaryOperation = { UnaryOperator ~ Expression }
+        UnaryOperator = { Not | Minus }
+            Not = { "not" }
+            Minus = { "-" }
+            FlipBits = { "~" }
+    BinaryOperation = { Expression ~ BinaryOperator ~ Expression }
+        BinaryOperator = { ArithmeticOperator | LogicalOperator | ComparisonOperator }
+            ArithmeticOperator = { Add | Subtract | Multiply | Divide | Power | Modulo }
+                Add      = { "+" }
+                Subtract = { "-" }
+                Multiply = { "*" }
+                Divide   = { "/" }
+                Power    = { "^" }
+                Modulo   = { "%" }
+            LogicalOperator = { And | Or | BitwiseXor | BitwiseAnd | BitwiseOr | BitShiftLeft | BitShiftRight }
+                And = { "and" }
+                Or = { "or" }
+                BitwiseXor = { "xor" } // TODO: solve this, cannot turn into `acc ^= val`
+                BitwiseAnd = { "&" }
+                BitwiseOr = { "|" }
+                BitShiftLeft = { "<<" }
+                BitShiftRight = { ">>" }
+            ComparisonOperator = { Eq | Ne | Gt | Ge | Lt | Le }
+                Eq = { "==" }
+                Ne = { "!=" }
+                Gt = { ">" }
+                Ge = { ">=" }
+                Lt = { "<" }
+                Le = { "<=" }
+
+IfExpression = {
+    "if" ~ Expression ~ Block
+    ~ ("elif" ~ Expression ~ Block)*
+    ~ ("else" ~ Block)?
+}
+
+Literal = { Float | Integer | Char | Boolean | String }
+    // Examples: "1.1", "100.5"
+    Float = @{ Integer ~ "." ~ Integer }
+    // Examples: "0", "100", "100_100", "1000_1000"
+    Integer = @{ Digit ~ (("_" ~ Digit) | Digit)* }
+    // Examples: "a", "ã", "😎"
+    // TODO: ANY might be dangerous, we might want to use Pest's built-ins to be more specific
+    Char = @{ "'" ~ (EscapeSeq | ANY) ~ "'" }
+    // A String (sequence of characters), of the form "x.." where x is any value in CharValue
+    Boolean = { True | False }
+        True = { "true" }
+        False = { "false" }
+    String = @{ "\"" ~ (RawString | EscapeSeq)* ~ "\"" }
+        RawString = @{ (!("\\" | "\"") ~ ANY)+ }
+
+// -- End of 'expressions' --
+
+// -- Start of 'Identifier' --
+
+// Identifier is `UncheckedIdentifier` but checks for reserved words `keyword`
+Identifier = @{ "@"? ~ &(Keyword? ~ AlphanumericOrUnderline) ~ UncheckedIdentifier }
+    UncheckedIdentifier = _{ AlphaOrUnderline+ ~ AlphanumericOrUnderline* }
+        Alpha = _{ 'a'..'z' | 'A'..'Z' }
+        AlphaOrUnderline = _{ Alpha | "_" }
+        AlphanumericOrUnderline = _{ AlphaOrUnderline | Digit }
+
+Keyword = _{
+      "if"     | "const"
+    | "let"    | "enum"
+    | "struct" | "pub"
+    | "else"   | "not"
+    | "true"   | "false"
+    | "elif"   | "fn"
+    | "for"
+}
+
+// Using pest built-in functionality for ignoring whitespace and comments
 WHITESPACE = _{ (" " | NEWLINE) }
+COMMENT = _{ "//" ~ (!"\n" ~ ANY)* } // TODO: test comments between broken expressions
 
-COMMENT = _{ "//" ~ (!"\n" ~ ANY)* }
+Digit       = { '0'..'9' }
+Arrow       = { "->" }
+Hex         = _{ '0'..'9' | 'a'..'f' | 'A'..'F' }
+UnicodeHex = { Hex{1, 4} }
+Predefined  = { "n" | "r" | "t" | "\\" | "0" | "\"" | "'" }
+Byte        = { "x" ~ Hex{2} }
+Unicode     = { "u" ~ "{" ~ UnicodeHex ~ "}" }
+EscapeSeq  = { "\\" ~ (Predefined | Byte | Unicode) }
 
-// TODO: add underline
-digit       = { '0'..'9' }
-arrow       = { "->" }
-hex         = _{ '0'..'9' | 'a'..'f' | 'A'..'F' }
-unicode_hex = { hex{1, 4} }
-predefined  = { "n" | "r" | "t" | "\\" | "0" | "\"" | "'" }
-byte        = { "x" ~ hex{2} }
-unicode     = { "u" ~ "{" ~ unicode_hex ~ "}" }
-escape_seq  = { "\\" ~ (predefined | byte | unicode) }
+// -- End of 'Identifier' --
 
-// A valid identifier must not start with a digit
-identifier = @{ !keywords ~ ascii_identifier }
-    ascii_identifier = @{ alpha_or_underline ~ (alpha_or_underline | digit)* }
-        alpha_or_underline = _{ 'a'..'z' | 'A'..'Z' | "_" }
+// -- Start of 'statement' --
 
-// An integer consists of one or more digits
-integer = @{
-    digit ~ (("_" ~ digit) | digit)*
-}
+Statement = { LetStatement | AssignmentStatement | ExpressionStatement | Item }
+    LetStatement = { "let" ~ Identifier ~ TypeAnnotation? ~ "=" ~ Expression ~ ";" }
+    ExpressionStatement = { Expression ~ ";" }
+    AssignmentStatement = { Identifier ~ AssignmentOperator ~ Expression ~ ";" }
+        AssignmentOperator = {
+            AssignOp             | ModuloAssign
+            | PowerAssign        | MultiplyAssign
+            | AddAssign          | DivideAssign
+            | SubtractAssign     | BitwiseAndAssign
+            | BitShiftLeftAssign | BitwiseOrAssign
+            | BitShiftRightAssign
+        }
+            AssignOp              = { "=" }
+            AddAssign             = { "+=" }  // (+)
+            SubtractAssign        = { "-=" }  // (-)
+            MultiplyAssign        = { "*=" }  // (*)
+            DivideAssign          = { "/=" }  // (/)
+            PowerAssign           = { "^=" }  // (^)
+            ModuloAssign          = { "%=" }  // (%)
+            BitwiseAndAssign     = { "&=" }  // (&)
+            BitwiseOrAssign      = { "|=" }  // (|)
+            BitShiftLeftAssign  = { "<<=" } // (<<)
+            BitShiftRightAssign = { ">>=" } // (>>)
 
-// A float is two integers joined by a dot
-float = {
-    integer ~ "." ~ integer
-}
+TypeAnnotation = { ":" ~ Identifier }
 
-num = { float | integer }
+// -- End of 'statement' --
 
-// A boolean value.
-// Either true or false
-boolean = _{
-    True | False
-}
-    True = { "true" }
-    False = { "false" }
+// -- Start of 'Item' --
 
-// The `not` operator
-not = {
-    "not" ~ (identifier | boolean | curly_braced_expression | "(" ~ expression ~ ")" )
-}
+Item = { Visibility ~ (FunctionDeclaration | StructDeclaration | ImplBlock) }
+    Visibility = { "pub"? }
+    ImplBlock = { "impl" ~ Identifier ~ "{" ~ FunctionDeclaration* ~ "}" }
 
-// The boolean binary operators
-boolean_op = _{ and | or }
-    and = { "and" }
-    or = { "or" }
+    FunctionDeclaration = { "fn" ~ Identifier ~ FunctionParameterList ~ FunctionReturn? ~ Block }
+        FunctionReturn = { Arrow ~ Identifier }
+        FunctionParameterList = {
+            "self"
+            | (("self" ~ ",")? ~ CommaSeparatedFunctionParameterList)
+        }
+            FunctionParameter = { Identifier ~ TypeAnnotation }
 
-// A boolean expression: either a boolean value or a boolean operation
-// TODO: allow for variables in boolean expressions
-boolean_expr = {
-    not
-    | boolean_term ~ (boolean_op ~ boolean_term)*
-}
+    StructDeclaration = { UnitStruct | DetailedStruct }
+        UnitStruct = { "struct" ~ Identifier ~ ";" }
+        DetailedStruct = { "struct" ~ Identifier ~ "{" ~ StructFieldList ~ "}" }
+            StructField = { Identifier ~ ":" ~ Identifier }
+            StructFieldList = { CommaSeparatedStructFieldList }
+            StructDefinition = { UnitStruct | DetailedStruct }
 
-// Comparison checks
-// E.g.
-//      x == y
-comparison = {
-    expression ~ comparison_operator ~ expression
-}
 
-// TODO: name these operators?
-comparison_operator = { "==" | "!=" | ">=" | "<=" | ">" | "<" | "<="}
+// -- End of 'Item' --
 
-// A boolean term is either a boolean value (true or false)
-// or a value that can be reduced to a boolean value (a boolean expression)
-boolean_term = _{
-    identifier | boolean | "(" ~ boolean_expr ~ ")"
-}
+// -- Start of comma separated lists
 
-if_expr = _{
-    "if" ~ expression ~ curly_braced_expression ~ elif* ~ ("else" ~ curly_braced_expression)?
-}
-	curly_braced_expression = _{ "{" ~ expression ~ "}" }
-    elif = _{ "elif" ~ expression ~ curly_braced_expression }
+CommaSeparatedFunctionParameterList = _{ (FunctionParameter ~ ("," ~ FunctionParameter)*)? ~ ","? }
+CommaSeparatedFunctionArgumentList  = _{ (Expression         ~ ("," ~ Expression)*)?         ~ ","? }
+CommaSeparatedStructFieldList       = _{ (StructField       ~ ("," ~ StructField)*)?       ~ ","? }
 
-math_op = _{ add | subtract | multiply | divide | power | modulo }
-    add      = { "+" }
-    subtract = { "-" }
-    multiply = { "*" }
-    divide   = { "/" }
-    power    = { "^" }
-    modulo   = { "%" }
-
-math_expr = {
-    math_term ~ (math_op ~ math_term)*
-}
-math_term = _{ unary_minus | num | identifier | "(" ~ math_expr ~ ")" }
-
-unary_minus = {
-    "-" ~ (identifier | num | curly_braced_expression | "(" ~ expression ~ ")" )
-}
-
-// A char of the form 'x', where x is any value in char_value
-char = {
-    "'" ~ (escape_seq | ANY) ~ "'"
-}
-
-raw_string = { (!("\\" | "\"") ~ ANY)+ }
-
-// A string (sequence of characters), of the form "x.." where x is any value in char_value
-string = {
-    "\"" ~ (raw_string | escape_seq)* ~ "\""
-}
-
-statement = {
-    function_call
-    | string
-    | boolean_expr
-    | math_expr
-    | char
-    | float
-    | integer
-    | boolean
-    | assignment
-    | if_expr
-}
-
-expression = {
-    "{" ~ expression ~ "}"
-    | statement ~ ";"
-    | statement
-}
-
-// Type annotation of the form ": type_name"
-type_annotation = { ":" ~ identifier }
-
-// Binding a value to a name.
-// May or may not contain a type annotation
-// E.g.:
-//     let x = "hey there"
-//     let x: string = "hey there"
-assignment = {
-	"let" ~ identifier ~ type_annotation? ~ "=" ~ expression
-}
-
-// An argument for a function
-// E.g.
-//     x: int
-//     name: string
-function_argument = {
-	identifier ~ type_annotation
-}
-
-// The return type for a function
-// E.g.
-//     -> bool
-//     -> int
-function_return = {
-	arrow ~ identifier
-}
-
-// A variant of an enum
-// E.g.
-//     Password(ZeroableString)
-//     Boolean(bool)
-enum_variant = {
-    identifier ~ "(" ~ identifier ~ ")" | identifier
-}
-
-/// A definition of an enum
-///
-/// E.g.
-///     pub enum NameOrId { Name(string), Id(Uuid) }
-///     enum MaybeString { Some(string), None }
-enum_definition = {
-    "pub"? ~ "enum" ~ identifier ~ "{" ~ (enum_variant ~ ",")* ~ enum_variant? ~ "}"
-}
-
-// The declaration of a function (without its body)
-// E.g.:
-//    fn main
-//    pub fn multiply x: int, y: int -> int
-//    fn is_even n: int -> bool
-function_declaration = {
-  "pub"? ~ "fn" ~ identifier ~ function_argument? ~ ("," ~ function_argument)* ~ function_return?
-}
-
-// The definition of a function
-// E.g.:
-//     fn is_even n: int -> bool { n % 2 == 0 }
-//     pub fn is_zero n: int -> bool { n == 0 }
-function_definition = {
-    function_declaration ~ expression
-}
-
-// A field of a struct
-// E.g.
-//     pub username: string
-//     age: int
-struct_field = {
-    "pub"? ~ identifier ~ ":" ~ identifier
-}
-
-// A definition of a struct
-// E.g.
-//     pub struct User { pub username: string, age: int, birth_date: Date }
-struct_definition = {
-    "pub"? ~ "struct" ~ identifier ~ "{" ~ (struct_field ~ ",")* ~ struct_field? ~ "}"
-}
-
-// The syntax of calling a function
-function_call = {
-    identifier ~ "(" ~ (expression ~ ",")* ~ expression? ~ ")"
-}
+// -- End of comma separated lists

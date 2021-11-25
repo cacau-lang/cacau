@@ -1,413 +1,445 @@
-pub use pest::Parser as ParserTrait;
-
-
-use pest_derive::Parser;
+pub use pest::Parser as _;
+pub use pest_derive::Parser;
 
 #[derive(Parser)]
 #[grammar = "grammar.pest"]
-pub struct ExpressionParser;
+pub struct CacauParser;
 
 #[cfg(test)]
 mod parser_tests {
-    use pest::Parser;
+    use super::*;
+    use pest::iterators::Pairs;
 
-    use crate::ExpressionParser;
-    use crate::Rule;
+    // Check if expression matches rule && expression has no remainder
+    fn whole_expression_parses(rule: Rule, expression: &str) -> bool {
+        let inner = |mut pairs: Pairs<Rule>| -> Option<bool> {
+            let first = pairs.next()?;
+            let second = pairs.next();
+            Some(first.as_str() == expression && second.is_none())
+        };
 
-    fn parse(rule: Rule, expression: &str) -> Option<()> {
-        ExpressionParser::parse(rule, expression).ok().map(|_| ())
+        CacauParser::parse(rule, expression)
+            .ok()
+            .and_then(inner)
+            .unwrap_or(false)
     }
 
-    fn assert_parses(rule: Rule, expression: &str) {
-        assert!(parse(rule, expression).is_some())
+    macro_rules! parse_ok {
+        ($rule: expr, $expression: expr) => {
+            assert!(whole_expression_parses($rule, $expression))
+        };
     }
 
-    fn assert_does_not_parse(rule: Rule, expression: &str) {
-        assert!(parse(rule, expression).is_none())
-    }
-
-    #[test]
-    fn single_char_identifiers() {
-        assert_parses(Rule::identifier, "x");
-        assert_parses(Rule::identifier, "z");
-        assert_parses(Rule::identifier, "_");
-
-        assert_does_not_parse(Rule::identifier, "2");
-        assert_does_not_parse(Rule::identifier, "7");
+    macro_rules! parse_err {
+        ($rule: expr, $expression: expr) => {
+            assert!(!whole_expression_parses($rule, $expression))
+        };
     }
 
     #[test]
     fn identifiers() {
-        assert_parses(Rule::identifier, "a");
-        assert_parses(Rule::identifier, "_abc");
-        assert_parses(Rule::identifier, "abc_123");
-        assert_parses(Rule::identifier, "zazz123");
+        // Reserved keywords:
+        parse_err!(Rule::Identifier, "if");
+        parse_err!(Rule::Identifier, "for");
+        parse_ok!(Rule::Identifier, "if_");
+        parse_ok!(Rule::Identifier, "for_");
 
-        // Keywords are reserved
-        assert_does_not_parse(Rule::identifier, "let");
-        assert_does_not_parse(Rule::identifier, "if");
-        assert_does_not_parse(Rule::identifier, "then");
-        assert_does_not_parse(Rule::identifier, "else");
+        parse_ok!(Rule::Identifier, "name");
+        parse_ok!(Rule::Identifier, "snake_case_example");
+        parse_ok!(Rule::Identifier, "MyStruct");
+        parse_ok!(Rule::Identifier, "SCREAMANDSHOUT");
+        parse_ok!(Rule::Identifier, "WITH_UNDERLINE");
+        parse_ok!(Rule::Identifier, "x");
+        parse_ok!(Rule::Identifier, "_");
+        parse_ok!(Rule::Identifier, "____");
+        parse_ok!(Rule::Identifier, "_a");
+        parse_ok!(Rule::Identifier, "_________a");
+        parse_ok!(Rule::Identifier, "a0");
+
+        parse_err!(Rule::Identifier, "2");
+        parse_err!(Rule::Identifier, "3abc");
+        parse_err!(Rule::Identifier, "$anything");
+        parse_err!(Rule::Identifier, "(anything)");
+
+        // @ in identifiers
+        parse_ok!(Rule::Identifier, "@anything");
+        parse_ok!(Rule::Identifier, "@x0");
+        parse_err!(Rule::Identifier, "zaz@z123");
+        parse_err!(Rule::Identifier, "@0a");
     }
-
-    // TODO: this test is failing ;-;
-    // #[test]
-    // pub fn invalid_identifiers() {
-    //     assert_does_not_parse(Rule::identifier, "2");
-    //     assert_does_not_parse(Rule::identifier, "3abc");
-    //     assert_does_not_parse(Rule::identifier, "@abc123");
-    //     assert_does_not_parse(Rule::identifier, "zaz@z123");
-    // }
 
     #[test]
     fn integers() {
-        assert_parses(Rule::expression, "1234");
-        assert_parses(Rule::expression, "000000");
-        assert_parses(Rule::expression, "987654321");
-        assert_parses(Rule::expression, "987654321");
+        parse_ok!(Rule::Integer, "0000000001293812753840");
+        parse_ok!(Rule::Integer, "1_0000_0000");
+        parse_ok!(Rule::Integer, "100_000_000");
+        parse_ok!(Rule::Integer, "0");
 
-        assert_parses(Rule::integer, "1234");
-        assert_parses(Rule::integer, "000000");
-        assert_parses(Rule::integer, "987654321");
-        assert_parses(Rule::integer, "987654321");
+        parse_err!(Rule::Integer, "0_");
+        parse_err!(Rule::Integer, "_100_000_000");
+        parse_err!(Rule::Integer, "1__0000_0000");
+        parse_err!(Rule::Integer, "000000000129__3812753840");
     }
 
     #[test]
     fn floats() {
-        assert_parses(Rule::expression, "123.4");
-        assert_parses(Rule::expression, "000.000");
-        assert_parses(Rule::expression, "98.7654321");
-        assert_parses(Rule::expression, "987654.321");
+        parse_ok!(Rule::Float, "123.4");
+        parse_ok!(Rule::Float, "000.000");
+        parse_ok!(Rule::Float, "98.7654321");
+        parse_ok!(Rule::Float, "987_654.50");
+        parse_ok!(Rule::Float, "987_654.100_100");
 
-        assert_parses(Rule::float, "123.4");
-        assert_parses(Rule::float, "000.000");
-        assert_parses(Rule::float, "98.7654321");
-        assert_parses(Rule::float, "987654.321");
-
-        assert_does_not_parse(Rule::float, "123");
-        assert_does_not_parse(Rule::float, "50000");
-        assert_does_not_parse(Rule::float, "abc123");
+        parse_err!(Rule::Float, "123");
+        parse_err!(Rule::Float, "1.");
+        parse_err!(Rule::Float, ".1");
+        parse_err!(Rule::Float, "5000..0");
+        parse_err!(Rule::Float, "1.2.3");
     }
 
     #[test]
     fn type_annotations() {
-        assert_parses(Rule::type_annotation, ": int");
-        assert_parses(Rule::type_annotation, ": float");
-        assert_parses(Rule::type_annotation, ": string");
+        parse_ok!(Rule::TypeAnnotation, ": int");
+        parse_ok!(Rule::TypeAnnotation, ": float");
+        parse_ok!(Rule::TypeAnnotation, ": string");
 
-        assert_does_not_parse(Rule::type_annotation, "123");
-        assert_does_not_parse(Rule::type_annotation, "string");
-        assert_does_not_parse(Rule::type_annotation, ": 123");
+        parse_err!(Rule::TypeAnnotation, "123");
+        parse_err!(Rule::TypeAnnotation, "string");
+        parse_err!(Rule::TypeAnnotation, ": 10");
     }
+
+    // #[test]
+    // fn assignment() {
+    //     // TODO: add other kinds of expressions here when possible
+    //     parse_ok!(Rule::Expression, "let x = 123");
+    //     parse_ok!(Rule::Expression, "let nines = 999");
+    // }
 
     #[test]
     fn assignment() {
-        // TODO: add other kinds of expressions here when possible
-
-        assert_parses(Rule::expression, "let x = 123");
-        assert_parses(Rule::expression, "let nines = 999");
-
-        assert_parses(Rule::assignment, "let x = \"Hey there\"");
-        assert_parses(Rule::assignment, "let nines = 'c'");
-
-        assert_parses(Rule::assignment, "let six: int = 5");
-
-        assert_parses(Rule::assignment, "let six: BigDecimal = 10");
-
-        assert_does_not_parse(Rule::assignment, "let name");
-        assert_does_not_parse(Rule::assignment, "let ch x: b");
-        assert_does_not_parse(Rule::assignment, "six: BigDecimal = 10");
+        parse_ok!(Rule::AssignmentStatement, "x = 1;");
+        parse_ok!(Rule::AssignmentStatement, "x += 1;");
+        parse_ok!(Rule::AssignmentStatement, "x -= 1;");
+        parse_ok!(Rule::AssignmentStatement, "x *= 1;");
+        parse_ok!(Rule::AssignmentStatement, "x /= 1;");
+        parse_ok!(Rule::AssignmentStatement, "x ^= 1;");
+        parse_ok!(Rule::AssignmentStatement, "x %= 1;");
+        parse_ok!(Rule::AssignmentStatement, "x &= 1;");
+        parse_ok!(Rule::AssignmentStatement, "x |= 1;");
+        parse_ok!(Rule::AssignmentStatement, "x <<= 1;");
+        parse_ok!(Rule::AssignmentStatement, "x >>= 1;");
     }
 
     #[test]
-    fn function_argument() {
-        assert_parses(Rule::function_argument, "x: int");
-        assert_parses(Rule::function_argument, "y: string");
-        assert_parses(Rule::function_argument, "lambda: num");
-
-        assert_does_not_parse(Rule::function_argument, "x: 123");
-        assert_does_not_parse(Rule::function_argument, "y: \"Hey\"");
+    fn let_statement() {
+        parse_ok!(Rule::LetStatement, "let x = \"Hey there\";");
+        parse_ok!(Rule::LetStatement, "let nines = 'c';");
+        parse_ok!(Rule::LetStatement, "let six: int = 5;");
+        parse_ok!(Rule::LetStatement, "let six: BigDecimal = 10;");
+        parse_err!(Rule::LetStatement, "let name;");
+        parse_err!(Rule::LetStatement, "let ch x: b;");
+        parse_err!(Rule::LetStatement, "six: BigDecimal = 10;");
     }
 
     #[test]
-    fn function_return() {
-        assert_parses(Rule::function_return, "-> x");
-        assert_parses(Rule::function_return, "-> y");
-        assert_parses(Rule::function_return, "-> z");
-
-        assert_does_not_parse(Rule::function_return, "-> 123");
-        assert_does_not_parse(Rule::function_return, "->");
-        assert_does_not_parse(Rule::function_return, "z");
+    fn function_argument_list() {
+        parse_ok!(Rule::FunctionParameterList, "x: int");
+        parse_ok!(Rule::FunctionParameterList, "x: int,");
+        parse_ok!(Rule::FunctionParameterList, "x: int, y: int");
+        parse_ok!(Rule::FunctionParameterList, "x: int, y: int,");
+        parse_ok!(Rule::FunctionParameterList, "y:y");
+        parse_err!(Rule::FunctionParameterList, ",x: int");
+        parse_err!(Rule::FunctionParameterList, "x, y");
+        parse_err!(Rule::FunctionParameterList, "x: 123");
     }
 
-    #[test]
-    fn function_declaration() {
-        // TODO: rewrite these function indentifiers whenever the underline is available
-        assert_parses(Rule::function_declaration, "fn main");
-        assert_parses(
-            Rule::function_declaration,
-            "pub fn no_args_but_returns_something -> int",
-        );
-        assert_parses(
-            Rule::function_declaration,
-            "fn no_args_but_returns_something -> int",
-        );
-        assert_parses(Rule::function_declaration, "fn one_arg_no_return x: int");
-        assert_parses(
-            Rule::function_declaration,
-            "fn one_arg_one_return x: int -> int",
-        );
-        assert_parses(Rule::function_declaration, "fn several_args x: int, y: int");
-        assert_parses(
-            Rule::function_declaration,
-            "pub fn several_args x: int, y: int",
-        );
-        assert_parses(
-            Rule::function_declaration,
-            "fn several_args_with_return x: int, y: int, z: int -> bool",
-        );
+    // #[test]
+    // fn function_return() {
+    //     parse_ok!(Rule::FunctionReturn, "-> x");
+    //     parse_ok!(Rule::FunctionReturn, "-> y");
+    //     parse_ok!(Rule::FunctionReturn, "-> z");
 
-        assert_does_not_parse(Rule::function_declaration, "fn");
-        assert_does_not_parse(Rule::function_declaration, "pub fn");
-        assert_does_not_parse(Rule::function_declaration, "fn -> bool");
+    //     parse_err!(Rule::FunctionReturn, "-> 123");
+    //     parse_err!(Rule::FunctionReturn, "->");
+    //     parse_err!(Rule::FunctionReturn, "z");
+    // }
 
-        // TODO: use SOI and EOI matching here whenever available
-        // No function name
-        // assert_does_not_parse(Rule::function_declaration, "fn x: int, y: int, z: int -> bool");
+    // #[test]
+    // fn function_declaration() {
+    //     // TODO: rewrite these function indentifiers whenever the underline is available
+    //     parse_ok!(Rule::FunctionDeclaration, "fn main");
+    //     parse_ok!(
+    //         Rule::FunctionDeclaration,
+    //         "pub fn no_args_but_returns_something -> int",
+    //     );
+    //     parse_ok!(
+    //         Rule::FunctionDeclaration,
+    //         "fn no_args_but_returns_something -> int",
+    //     );
+    //     parse_ok!(Rule::FunctionDeclaration, "fn one_arg_no_return x: int");
+    //     parse_ok!(
+    //         Rule::FunctionDeclaration,
+    //         "fn one_arg_one_return x: int -> int",
+    //     );
+    //     parse_ok!(Rule::FunctionDeclaration, "fn several_args x: int, y: int");
+    //     parse_ok!(
+    //         Rule::FunctionDeclaration,
+    //         "pub fn several_args x: int, y: int",
+    //     );
+    //     parse_ok!(
+    //         Rule::FunctionDeclaration,
+    //         "fn several_args_with_return x: int, y: int, z: int -> bool",
+    //     );
 
-        // Arrow set but return type not specified
-        // assert_does_not_parse(Rule::function_declaration, "fn func x: int, y: int, z: int ->");
+    //     parse_err!(Rule::FunctionDeclaration, "fn");
+    //     parse_err!(Rule::FunctionDeclaration, "pub fn");
+    //     parse_err!(Rule::FunctionDeclaration, "fn -> bool");
 
-        // Incorrect argument specification
-        // assert_does_not_parse(Rule::function_declaration, "fn func x: -> bool");
-    }
+    //     // TODO: use SOI and EOI matching here whenever available
+    //     // No function name
+    //     // parse_err!(Rule::FunctionDeclaration, "fn x: int, y: int, z: int -> bool");
 
-    #[test]
-    fn char() {
-        // TODO: ideally check that Unicode values parse
+    //     // Arrow set but return type not specified
+    //     // parse_err!(Rule::FunctionDeclaration, "fn func x: int, y: int, z: int ->");
 
-        for ch in 'a'..'Z' {
-            let ch = format!("'{}'", ch);
-            assert_parses(Rule::char, &ch);
-            assert_parses(Rule::expression, &ch);
-        }
+    //     // Incorrect argument specification
+    //     // parse_err!(Rule::FunctionDeclaration, "fn func x: -> bool");
+    // }
 
-        assert_does_not_parse(Rule::char, "''");
-        assert_does_not_parse(Rule::expression, "''");
-    }
+    // #[test]
+    // fn char() {
+    //     // TODO: ideally check that Unicode values parse
 
-    #[test]
-    fn string() {
-        assert_parses(Rule::string, "\"HELLO THERE\"");
-        assert_parses(Rule::string, "\"\"");
+    //     for ch in 'a'..'Z' {
+    //         let ch = format!("'{}'", ch);
+    //         parse_ok!(Rule::Char, &ch);
+    //         parse_ok!(Rule::Expression, &ch);
+    //     }
 
-        assert_parses(Rule::string, "\"órgão público\"");
+    //     parse_err!(Rule::Char, "''");
+    //     parse_err!(Rule::Expression, "''");
+    // }
 
-        assert_does_not_parse(Rule::char, "''");
+    // #[test]
+    // fn string() {
+    //     parse_ok!(Rule::String, "\"HELLO THERE\"");
+    //     parse_ok!(Rule::String, "\"\"");
 
-        assert_does_not_parse(Rule::char, "\"");
+    //     parse_ok!(Rule::String, "\"órgão público\"");
 
-        assert_does_not_parse(Rule::char, "some text without enclosing double quotes");
+    //     parse_err!(Rule::Char, "''");
 
-        assert_does_not_parse(Rule::char, "\"some text with missing closing double quotes");
-    }
+    //     parse_err!(Rule::Char, "\"");
 
-    #[test]
-    fn boolean() {
-        assert_parses(Rule::boolean, "true");
-        assert_parses(Rule::boolean, "false");
+    //     parse_err!(Rule::Char, "some text without enclosing double quotes");
 
-        assert_does_not_parse(Rule::boolean, "False");
-        assert_does_not_parse(Rule::boolean, "Talse");
-    }
+    //     parse_err!(Rule::Char, "\"some text with missing closing double quotes");
+    // }
 
-    #[test]
-    fn boolean_operations() {
-        assert_parses(Rule::boolean_expr, "true and false");
-        assert_parses(Rule::boolean_expr, "false or not true");
-        assert_parses(Rule::boolean_expr, "false or (not (true or false))");
-        assert_parses(Rule::boolean_expr, "false or (false and true)");
-        assert_parses(Rule::boolean_expr, "false or (false and (true or false))");
-        assert_parses(Rule::boolean_expr, "not true");
-        assert_parses(
-            Rule::boolean_expr,
-            "false or (false and (true or (true and false)))",
-        );
-        assert_parses(
-            Rule::boolean_expr,
-            "(false and (true or (true and false))) or (false and (true or (true and (true))))",
-        );
-    }
+    // #[test]
+    // fn boolean() {
+    //     parse_ok!(Rule::Boolean, "true");
+    //     parse_ok!(Rule::Boolean, "false");
 
-    #[test]
-    fn enum_definition() {
-        assert_parses(
-            Rule::enum_definition,
-            "pub enum NameOrId { Name(string), Id(Uuid) }",
-        );
-        assert_parses(Rule::enum_definition, "pub enum Status { Polling, Ready }");
-        assert_parses(Rule::enum_definition, "pub enum Status { Polling, Ready, }");
-        assert_parses(Rule::enum_definition, "pub enum NoVariant { }");
+    //     parse_err!(Rule::Boolean, "False");
+    //     parse_err!(Rule::Boolean, "Talse");
+    // }
 
-        assert_does_not_parse(Rule::enum_definition, "pub enum");
+    // #[test]
+    // fn boolean_operations() {
+    //     parse_ok!(Rule::BooleanExpr, "true and false");
+    //     parse_ok!(Rule::BooleanExpr, "false or not true");
+    //     parse_ok!(Rule::BooleanExpr, "false or (not (true or false))");
+    //     parse_ok!(Rule::BooleanExpr, "false or (false and true)");
+    //     parse_ok!(Rule::BooleanExpr, "false or (false and (true or false))");
+    //     parse_ok!(Rule::BooleanExpr, "not true");
+    //     parse_ok!(
+    //         Rule::BooleanExpr,
+    //         "false or (false and (true or (true and false)))",
+    //     );
+    //     parse_ok!(
+    //         Rule::BooleanExpr,
+    //         "(false and (true or (true and false))) or (false and (true or (true and (true))))",
+    //     );
+    // }
 
-        assert_does_not_parse(Rule::enum_definition, "pub enum NoVariantDoneWrong");
+    // #[test]
+    // fn enum_definition() {
+    //     parse_ok!(
+    //         Rule::EnumDefinition,
+    //         "pub enum NameOrId { Name(string), Id(Uuid) }",
+    //     );
+    //     parse_ok!(Rule::EnumDefinition, "pub enum Status { Polling, Ready }");
+    //     parse_ok!(Rule::EnumDefinition, "pub enum Status { Polling, Ready, }");
+    //     parse_ok!(Rule::EnumDefinition, "pub enum NoVariant { }");
 
-        // Enum without name
-        assert_does_not_parse(Rule::enum_definition, "pub enum { Polling, Ready }");
-        // Wrong keyword
-        assert_does_not_parse(Rule::enum_definition, "pub enub Status { Polling, Ready }");
-    }
+    //     parse_err!(Rule::EnumDefinition, "pub enum");
 
-    #[test]
-    fn struct_definition() {
-        assert_parses(Rule::struct_definition, "struct User { }");
-        assert_parses(Rule::struct_definition, "pub struct User { }");
-        assert_parses(
-            Rule::struct_definition,
-            "pub struct User { pub username: string, age: int, birth_date: Date }",
-        );
+    //     parse_err!(Rule::EnumDefinition, "pub enum NoVariantDoneWrong");
 
-        // Missing braces
-        assert_does_not_parse(Rule::struct_definition, "struct User");
+    //     // Enum without name
+    //     parse_err!(Rule::EnumDefinition, "pub enum { Polling, Ready }");
+    //     // Wrong keyword
+    //     parse_err!(Rule::EnumDefinition, "pub enub Status { Polling, Ready }");
+    // }
 
-        // Missing type for field
-        assert_does_not_parse(
-            Rule::struct_definition,
-            "pub struct User { pub username: , age: int, birth_date: Date }",
-        );
-    }
+    // #[test]
+    // fn struct_definition() {
+    //     parse_ok!(Rule::StructDefinition, "struct User { }");
+    //     parse_ok!(Rule::StructDefinition, "pub struct User { }");
+    //     parse_ok!(
+    //         Rule::StructDefinition,
+    //         "pub struct User { pub username: string, age: int, birth_date: Date }",
+    //     );
 
-    #[test]
-    fn math_op() {
-        assert_parses(Rule::math_expr, "2");
-        assert_parses(Rule::math_expr, "-2");
-        assert_parses(Rule::math_expr, "-2 * 5");
-        assert_parses(Rule::math_expr, "-(2*5)");
-        assert_parses(Rule::math_expr, "x + y");
-        assert_parses(Rule::math_expr, "2 + 2");
-        assert_parses(Rule::math_expr, "2 - (2*3)");
-        assert_parses(Rule::math_expr, "(2^3)/2");
-        assert_parses(Rule::math_expr, "(2-y) * (3+6)");
+    //     // Missing braces
+    //     parse_err!(Rule::StructDefinition, "struct User");
 
-        assert_parses(Rule::expression, "2");
-        assert_parses(Rule::expression, "2 + 2");
-        assert_parses(Rule::expression, "2 - (2*3)");
-        assert_parses(Rule::expression, "(2^3)/2");
-        assert_parses(Rule::expression, "(2-2) * (3+6)");
-        assert_parses(Rule::expression, "(2-2) % (3+6)");
+    //     // Missing type for field
+    //     parse_err!(
+    //         Rule::StructDefinition,
+    //         "pub struct User { pub username: , age: int, birth_date: Date }",
+    //     );
+    // }
 
-        assert_does_not_parse(Rule::math_expr, "-");
-        assert_does_not_parse(Rule::math_expr, "()");
+    // #[test]
+    // fn math_op() {
+    //     parse_ok!(Rule::MathExpr, "2");
+    //     parse_ok!(Rule::MathExpr, "-2");
+    //     parse_ok!(Rule::MathExpr, "-2 * 5");
+    //     parse_ok!(Rule::MathExpr, "-(2*5)");
+    //     parse_ok!(Rule::MathExpr, "x + y");
+    //     parse_ok!(Rule::MathExpr, "2 + 2");
+    //     parse_ok!(Rule::MathExpr, "2 - (2*3)");
+    //     parse_ok!(Rule::MathExpr, "(2^3)/2");
+    //     parse_ok!(Rule::MathExpr, "(2-y) * (3+6)");
 
-        assert_does_not_parse(Rule::expression, "()");
-        assert_does_not_parse(Rule::math_expr, "*3");
-    }
+    //     parse_ok!(Rule::Expression, "2");
+    //     parse_ok!(Rule::Expression, "2 + 2");
+    //     parse_ok!(Rule::Expression, "2 - (2*3)");
+    //     parse_ok!(Rule::Expression, "(2^3)/2");
+    //     parse_ok!(Rule::Expression, "(2-2) * (3+6)");
+    //     parse_ok!(Rule::Expression, "(2-2) % (3+6)");
 
-    #[test]
-    fn function_definition() {
-        // TODO: Add identifiers here whenever possible
+    //     parse_err!(Rule::MathExpr, "-");
+    //     parse_err!(Rule::MathExpr, "()");
 
-        assert_parses(Rule::function_definition, "fn two -> int { 2 }");
-        assert_parses(
-            Rule::function_definition,
-            "fn double x: int -> int { 2 + 2 }",
-        );
-        assert_parses(
-            Rule::function_definition,
-            "pub fn double x: int, b: bool, s: str -> SomeType { 2 * (2-3) ^ 5 }",
-        );
+    //     parse_err!(Rule::Expression, "()");
+    //     parse_err!(Rule::MathExpr, "*3");
+    // }
 
-        assert_does_not_parse(
-            Rule::function_definition,
-            "pub fn double x: int, b: bool, s: str -> SomeType { 2 * (2-3) ^ true }",
-        );
-        assert_does_not_parse(
-            Rule::function_definition,
-            "fn x: int -> int { true and (false) }",
-        );
-        assert_does_not_parse(Rule::function_definition, "2 + 2");
-        assert_does_not_parse(Rule::function_definition, "2");
-    }
+    // #[test]
+    // fn function_definition() {
+    //     // TODO: Add identifiers here whenever possible
 
-    #[test]
-    fn if_expr() {
-        assert_parses(Rule::program, "if true and false { 2*2 } else { 5}");
-        assert_parses(Rule::program, "if true and false { false }");
-        assert_parses(Rule::if_expr, "if true and false { false }");
-        assert_parses(Rule::if_expr, "if 2*6 { false }");
+    //     parse_ok!(Rule::FunctionDefinition, "fn two -> int { 2 }");
+    //     parse_ok!(
+    //         Rule::FunctionDefinition,
+    //         "fn double x: int -> int { 2 + 2 }",
+    //     );
+    //     parse_ok!(
+    //         Rule::FunctionDefinition,
+    //         "pub fn double x: int, b: bool, s: str -> SomeType { 2 * (2-3) ^ 5 }",
+    //     );
 
-        assert_does_not_parse(Rule::program, "if true and false { 2*2 } else");
-        assert_does_not_parse(Rule::program, "if true and false 2*2 ");
-    }
+    //     parse_err!(
+    //         Rule::FunctionDefinition,
+    //         "pub fn double x: int, b: bool, s: str -> SomeType { 2 * (2-3) ^ true }",
+    //     );
+    //     parse_err!(
+    //         Rule::FunctionDefinition,
+    //         "fn x: int -> int { true and (false) }",
+    //     );
+    //     parse_err!(Rule::FunctionDefinition, "2 + 2");
+    //     parse_err!(Rule::FunctionDefinition, "2");
+    // }
 
-    #[test]
-    fn elif() {
-        assert_parses(Rule::if_expr, "if some_condition { 2*2 }");
-        assert_parses(Rule::if_expr, "if some_condition { 2*2 } elif another_condition { 4* 4} ");
-        assert_parses(Rule::if_expr, "if some_condition { 2*2 } elif another_condition { 4* 4} else { 6*6 } ");
-        
-        assert_does_not_parse(Rule::if_expr, "if some_condition ");
-        assert_does_not_parse(Rule::if_expr, "if some_condition  elif another_condition { 4* 4} ");
-        assert_does_not_parse(Rule::program, "if some_condition { 2*2 } elif another_condition { 4* 4} else ");
-    }
+    // #[test]
+    // fn if_expr() {
+    //     parse_ok!(Rule::Program, "if true and false { 2*2 } else { 5}");
+    //     parse_ok!(Rule::Program, "if true and false { false }");
+    //     parse_ok!(Rule::IfExpr, "if true and false { false }");
+    //     parse_ok!(Rule::IfExpr, "if 2*6 { false }");
 
+    //     parse_err!(Rule::Program, "if true and false { 2*2 } else");
+    //     parse_err!(Rule::Program, "if true and false 2*2 ");
+    // }
 
-    #[test]
-    fn program() {
-        // TODO: further testing
+    // #[test]
+    // fn elif() {
+    //     parse_ok!(Rule::IfExpr, "if some_condition { 2*2 }");
+    //     parse_ok!(
+    //         Rule::IfExpr,
+    //         "if some_condition { 2*2 } elif another_condition { 4* 4} ",
+    //     );
+    //     parse_ok!(
+    //         Rule::IfExpr,
+    //         "if some_condition { 2*2 } elif another_condition { 4* 4} else { 6*6 } ",
+    //     );
 
-        let valid_program = r###"
-        pub struct UserData {
-            pub name: string,
-            password: ZeroableString
-         }
-         
-        pub enum User {
-            Admin(UserData),
-            Regular(UserData),
-        }
-         
-        pub fn four -> int {
-           2 + 2
-        }"###;
+    //     parse_err!(Rule::IfExpr, "if some_condition ");
+    //     parse_err!(
+    //         Rule::IfExpr,
+    //         "if some_condition  elif another_condition { 4* 4} ",
+    //     );
+    //     parse_err!(
+    //         Rule::Program,
+    //         "if some_condition { 2*2 } elif another_condition { 4* 4} else ",
+    //     );
+    // }
 
-        let missing_else_expr = r###"
-        pub fn test {
-            if true and false { 2*2 } else
-        }
-        "###;
+    // #[test]
+    // fn program() {
+    //     // TODO: further testing
 
-        assert_parses(Rule::program, valid_program);
-        assert_does_not_parse(Rule::program, missing_else_expr);
-    }
+    //     let valid_program = r###"
+    //     pub struct UserData {
+    //         pub name: string,
+    //         password: ZeroableString
+    //      }
 
-    #[test]
-    fn comparison() {
-        assert_parses(Rule::comparison, "x == y");
-        assert_parses(Rule::comparison, "2 != 3");
-        assert_parses(Rule::comparison, "x != y");
-        assert_parses(Rule::comparison, "x >= y");
-        assert_parses(Rule::comparison, "x <= y");
-        assert_parses(Rule::comparison, "x < y");
-        assert_parses(Rule::comparison, "x > y");
-        assert_parses(Rule::comparison, "\"abc\" > \"oop\"");
+    //     pub enum User {
+    //         Admin(UserData),
+    //         Regular(UserData),
+    //     }
 
-        assert_does_not_parse(Rule::comparison, "x>");
-        assert_does_not_parse(Rule::comparison, "y<=");
-        assert_does_not_parse(Rule::comparison, "==");
-        assert_does_not_parse(Rule::comparison, "<= z");
-    }
+    //     pub fn four -> int {
+    //        2 + 2
+    //     }"###;
 
+    //     let missing_else_expr = r###"
+    //     pub fn test {
+    //         if true and false { 2*2 } else
+    //     }
+    //     "###;
 
-    #[test]
-    fn function_calls() {
-        assert_parses(Rule::function_call, "print()");
-        assert_parses(Rule::function_call, "print('b')");
-        assert_parses(Rule::function_call, "println(\"haha\", 'c', 2, 2*2)");
-        assert_parses(Rule::function_call, "println(double)");
+    //     parse_ok!(Rule::Program, valid_program);
+    //     parse_err!(Rule::Program, missing_else_expr);
+    // }
 
+    // #[test]
+    // fn comparison() {
+    //     parse_ok!(Rule::Comparison, "x == y");
+    //     parse_ok!(Rule::Comparison, "2 != 3");
+    //     parse_ok!(Rule::Comparison, "x != y");
+    //     parse_ok!(Rule::Comparison, "x >= y");
+    //     parse_ok!(Rule::Comparison, "x <= y");
+    //     parse_ok!(Rule::Comparison, "x < y");
+    //     parse_ok!(Rule::Comparison, "x > y");
+    //     parse_ok!(Rule::Comparison, "\"abc\" > \"oop\"");
 
-        assert_does_not_parse(Rule::function_call, "(\"haha\", 'c', 2, 2*2)");
-    }
+    //     parse_err!(Rule::Comparison, "x>");
+    //     parse_err!(Rule::Comparison, "y<=");
+    //     parse_err!(Rule::Comparison, "==");
+    //     parse_err!(Rule::Comparison, "<= z");
+    // }
+
+    // #[test]
+    // fn function_calls() {
+    //     parse_ok!(Rule::FunctionCall, "print()");
+    //     parse_ok!(Rule::FunctionCall, "print('b')");
+    //     parse_ok!(Rule::FunctionCall, "println(\"haha\", 'c', 2, 2*2)");
+    //     parse_ok!(Rule::FunctionCall, "println(double)");
+
+    //     parse_err!(Rule::FunctionCall, "(\"haha\", 'c', 2, 2*2)");
+    // }
 }
