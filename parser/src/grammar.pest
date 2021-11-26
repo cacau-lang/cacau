@@ -37,6 +37,14 @@ OperatorExpression = { UnaryOperation }
             Not = { "not" }
             Minus = { "-" }
             FlipBits = { "~" }
+
+    // This is a simplification of `BinaryOperation` a little bit, just to get started
+    // TODO: remove both `ArithmeticOperation` and `Term`
+    //ArithmeticOperation = { Term ~ (ArithmeticOperator ~ ArithmeticOperation) * }
+    ArithmeticOperation = { Term ~ ArithmeticPiece * }
+    ArithmeticPiece = { ArithmeticOperator ~ ArithmeticOperation }
+    Term = { Literal | Identifier  | "(" ~ ArithmeticOperation ~ ")" }
+
     BinaryOperation = { Expression ~ BinaryOperator ~ Expression }
         BinaryOperator = { ArithmeticOperator | LogicalOperator | ComparisonOperator }
             ArithmeticOperator = { Add | Subtract | Multiply | Divide | Power | Modulo }

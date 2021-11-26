@@ -49,6 +49,13 @@ pub fn rule_parser_from_str<'a>(rule_name: &'a str) -> (Rule, Option<BuildAstFn<
             Some(Box::new(|p| Box::new(Identifier::from_pest(p).unwrap()))),
         ),
 
+        "ArithmeticOperation" => (
+            Rule::ArithmeticOperation,
+            Some(Box::new(|p| {
+                Box::new(ArithmeticOperation::from_pest(p).unwrap())
+            })),
+        ),
+
         name => panic!("unknown rule {}", name),
     }
 }
