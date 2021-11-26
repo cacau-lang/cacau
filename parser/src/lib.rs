@@ -1,9 +1,31 @@
-pub use pest::Parser as _;
+pub use pest::{error::Error, iterators::Pairs, Parser};
 pub use pest_derive::Parser;
 
+// this imports `Rule`
 #[derive(Parser)]
 #[grammar = "grammar.pest"]
 pub struct CacauParser;
+
+pub fn rule_from_str(rule_name: &str) -> Rule {
+    match rule_name {
+        // TODO: a way to get this from the .pest file
+        "Expression" => Rule::Expression,
+        "Program" => Rule::Program,
+
+        "Literal" => Rule::Literal,
+        "Float" => Rule::Float,
+        "Integer" => Rule::Integer,
+        "Char" => Rule::Char,
+        "Boolean" => Rule::Boolean,
+        "String" => Rule::String,
+
+        name => panic!("unknown rule {}", name),
+    }
+}
+
+pub fn parse(rule: Rule, contents: &str) -> Result<Pairs<Rule>, Error<Rule>> {
+    CacauParser::parse(rule, contents)
+}
 
 #[cfg(test)]
 mod parser_tests {

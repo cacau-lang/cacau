@@ -1,13 +1,19 @@
-use std::{env, fs};
+use std::env;
 
-use parser::{Rule, ParserTrait, ExpressionParser};
+use parser::{parse, rule_from_str};
 
 fn main() {
-    let file = env::args_os().skip(1).next().expect("no file supplied");
+    let mut args = env::args_os().skip(1);
 
-    let contents = fs::read_to_string(file).unwrap();
+    let rule_name = args.next().expect("no rule supplied");
 
-    let parsed = ExpressionParser::parse(Rule::program, &contents).expect("failed to parse");
+    let term = args.next().expect("no term supplied");
+
+    let rule = rule_from_str(rule_name.to_str().unwrap());
+
+    let parsed = parse(rule, term.to_str().unwrap()).expect("failed to parse");
 
     println!("parsed: {}", parsed);
+
+    println!("parsed (verbose): {:#?}", parsed);
 }
