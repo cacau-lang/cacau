@@ -68,19 +68,19 @@ IfExpression = {
     ~ ("else" ~ Block)?
 }
 
-Literal = { Float | Integer | Char | Boolean | String }
+Literal = { FloatLiteral | IntegerLiteral | CharLiteral | BooleanLiteral | StringLiteral }
     // Examples: "1.1", "100.5"
-    Float = @{ Integer ~ "." ~ Integer }
+    FloatLiteral = @{ IntegerLiteral ~ "." ~ IntegerLiteral }
     // Examples: "0", "100", "100_100", "1000_1000"
-    Integer = @{ Digit ~ (("_" ~ Digit) | Digit)* }
+    IntegerLiteral = @{ Digit ~ (("_" ~ Digit) | Digit)* }
     // Examples: "a", "ã", "😎"
     // TODO: ANY might be dangerous, we might want to use Pest's built-ins to be more specific
-    Char = @{ "'" ~ (EscapeSeq | ANY) ~ "'" }
+    CharLiteral = @{ "'" ~ (EscapeSeq | ANY) ~ "'" }
     // A String (sequence of characters), of the form "x.." where x is any value in CharValue
-    Boolean = { True | False }
+    BooleanLiteral = { True | False }
         True = { "true" }
         False = { "false" }
-    String = @{ "\"" ~ (RawString | EscapeSeq)* ~ "\"" }
+    StringLiteral = @{ "\"" ~ (RawString | EscapeSeq)* ~ "\"" }
         RawString = @{ (!("\\" | "\"") ~ ANY)+ }
 
 // -- End of 'expressions' --

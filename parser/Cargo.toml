@@ -1,6 +1,9 @@
 [package]
 name = "parser"
-authors = ["Vinícius Rodrigues Miguel <vrmiguel99@gmail.com>", "João M. Bezerra <marcospb19@hotmail.com>"]
+authors = [
+    "Vinícius Rodrigues Miguel <vrmiguel99@gmail.com>",
+    "João M. Bezerra <marcospb19@hotmail.com>",
+]
 readme = "README.md"
 repository = "https://github.com/cacau-lang/cacau"
 license = "MIT"
@@ -12,4 +15,6 @@ edition = "2021"
 [dependencies]
 pest = "2.1.3"
 pest_derive = "2.1.0"
+pest-ast = "0.3"
+from-pest = "0.3"
 lazy_static = "1.4.0"
