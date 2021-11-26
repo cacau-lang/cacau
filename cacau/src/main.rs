@@ -1,27 +1,17 @@
 use std::env;
 
-use parser::{parse, rule_parser_from_str};
+use parser::parse;
 
 fn main() {
     let mut args = env::args_os().skip(1);
 
-    let rule_name = args.next().expect("no rule supplied");
-
     let term = args.next().expect("no term supplied");
 
-    let (rule, from_pest) = rule_parser_from_str(rule_name.to_str().unwrap());
+    let (parser_tree, ast) = parse(term.to_str().unwrap()).expect("failed to parse");
 
-    let mut parsed = parse(rule, term.to_str().unwrap()).expect("failed to parse");
+    println!("parser tree (small): {}", parser_tree);
 
-    println!("parsed: {}", parsed);
+    println!("parser tree (verbose): {:#?}", parser_tree);
 
-    println!("parsed (verbose): {:#?}", parsed);
-
-    if let Some(build_ast) = from_pest {
-        let ast = build_ast(&mut parsed);
-
-        println!("ast: {:#?}", ast);
-    } else {
-        println!("(no ast)");
-    }
+    println!("ast: {:#?}", ast);
 }

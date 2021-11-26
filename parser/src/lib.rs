@@ -1,17 +1,25 @@
-pub use pest::{error::Error, iterators::Pairs, Parser};
-pub use pest_derive::Parser;
+pub use pest::iterators::Pairs;
+
+use pest_consume::{Error, Parser};
+
+use ast::Term;
+
+type Node<'i> = pest_consume::Node<'i, Rule, ()>;
 
 mod ast;
-mod reflect;
-
-pub use reflect::rule_parser_from_str;
 // this creates `Rule`
 #[derive(Parser)]
 #[grammar = "grammar.pest"]
 pub struct CacauParser;
 
-pub fn parse(rule: Rule, contents: &str) -> Result<Pairs<Rule>, Error<Rule>> {
-    CacauParser::parse(rule, contents)
+pub fn parse(contents: &str) -> Result<(Node, Term), Error<Rule>> {
+    let inputs = CacauParser::parse(Rule::ArithmeticOperation, contents)?;
+
+    let parser_tree = inputs.single()?;
+
+    let ast = ast::okay(parser_tree.clone())?;
+
+    Ok((parser_tree, ast))
 }
 
 #[cfg(test)]

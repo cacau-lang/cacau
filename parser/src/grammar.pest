@@ -40,10 +40,10 @@ OperatorExpression = { UnaryOperation }
 
     // This is a simplification of `BinaryOperation` a little bit, just to get started
     // TODO: remove both `ArithmeticOperation` and `Term`
-    //ArithmeticOperation = { Term ~ (ArithmeticOperator ~ ArithmeticOperation) * }
-    ArithmeticOperation = { Term ~ ArithmeticPiece * }
-    ArithmeticPiece = { ArithmeticOperator ~ ArithmeticOperation }
-    Term = { Literal | Identifier  | "(" ~ ArithmeticOperation ~ ")" }
+    ArithmeticOperation = { Term ~ (ArithmeticOperator ~ ArithmeticOperation) * }
+    //ArithmeticOperation = { Term ~ ArithmeticPiece * }
+    //ArithmeticPiece = { ArithmeticOperator ~ ArithmeticOperation }
+    Term = { "(" ~ ArithmeticOperation ~ ")" | Literal | Identifier }
 
     BinaryOperation = { Expression ~ BinaryOperator ~ Expression }
         BinaryOperator = { ArithmeticOperator | LogicalOperator | ComparisonOperator }
