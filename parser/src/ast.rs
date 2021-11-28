@@ -1,18 +1,19 @@
-use crate::{CacauParser, Rule};
-use pest::prec_climber as pcl;
+use lazy_static::lazy_static;
 use pest::prec_climber::PrecClimber;
 use pest_consume::{match_nodes, Error};
 
-use lazy_static::lazy_static;
+use crate::{CacauParser, Rule};
 
 type Result<T> = std::result::Result<T, Error<Rule>>;
 type Node<'i> = pest_consume::Node<'i, Rule, ()>;
 
 lazy_static! {
     static ref PREC_CLIMBER: PrecClimber<Rule> = {
-        use pcl::Assoc::*;
-        use pcl::Operator;
-        use Rule::*;
+        use pest::prec_climber::{
+            Assoc::{Left, Right},
+            Operator,
+        };
+        use Rule::{Add, Divide, Modulo, Multiply, Power, Subtract};
 
         PrecClimber::new(vec![
             Operator::new(Add, Left) | Operator::new(Subtract, Left),
@@ -227,13 +228,10 @@ pub enum Term {
 
 #[derive(Debug)]
 pub struct ArithmeticOperation {
-    left: Term,
-    op: ArithmeticOperator,
-    right: Term,
+    pub left: Term,
+    pub op: ArithmeticOperator,
+    pub right: Term,
 }
-
-/*
-}*/
 
 #[derive(Debug)]
 pub enum ArithmeticOperator {

@@ -1,37 +1,35 @@
-pub use pest::iterators::Pairs;
+mod ast;
 
+pub use pest::iterators::Pairs;
 use pest_consume::{Error, Parser};
 
 use ast::Term;
 
 type Node<'i> = pest_consume::Node<'i, Rule, ()>;
 
-mod ast;
-// this creates `Rule`
+// This creates `Rule`
 #[derive(Parser)]
 #[grammar = "grammar.pest"]
 pub struct CacauParser;
 
 pub fn parse(contents: &str) -> Result<(Node, Term), Error<Rule>> {
     let inputs = CacauParser::parse(Rule::ArithmeticOperation, contents)?;
-
     let parser_tree = inputs.single()?;
 
     let ast = ast::okay(parser_tree.clone())?;
-
     Ok((parser_tree, ast))
 }
 
 #[cfg(test)]
 mod parser_tests {
     use super::*;
-    use pest::iterators::Pairs;
+    use pest_consume::Nodes;
 
     // Check if expression matches rule && expression has no remainder
     fn whole_expression_parses(rule: Rule, expression: &str) -> bool {
-        let inner = |mut pairs: Pairs<Rule>| -> Option<bool> {
-            let first = pairs.next()?;
-            let second = pairs.next();
+        let inner = |mut nodes: Nodes<Rule, ()>| -> Option<bool> {
+            let first = nodes.next()?;
+            let second = nodes.next();
             Some(first.as_str() == expression && second.is_none())
         };
 
@@ -61,7 +59,6 @@ mod parser_tests {
         parse_ok!(Rule::Identifier, "if_");
         parse_ok!(Rule::Identifier, "for_");
 
-        parse_ok!(Rule::Identifier, "name");
         parse_ok!(Rule::Identifier, "snake_case_example");
         parse_ok!(Rule::Identifier, "MyStruct");
         parse_ok!(Rule::Identifier, "SCREAMANDSHOUT");
@@ -87,30 +84,30 @@ mod parser_tests {
 
     #[test]
     fn integers() {
-        parse_ok!(Rule::Integer, "0000000001293812753840");
-        parse_ok!(Rule::Integer, "1_0000_0000");
-        parse_ok!(Rule::Integer, "100_000_000");
-        parse_ok!(Rule::Integer, "0");
+        parse_ok!(Rule::IntegerLiteral, "0000000001293812753840");
+        parse_ok!(Rule::IntegerLiteral, "1_0000_0000");
+        parse_ok!(Rule::IntegerLiteral, "100_000_000");
+        parse_ok!(Rule::IntegerLiteral, "0");
 
-        parse_err!(Rule::Integer, "0_");
-        parse_err!(Rule::Integer, "_100_000_000");
-        parse_err!(Rule::Integer, "1__0000_0000");
-        parse_err!(Rule::Integer, "000000000129__3812753840");
+        parse_err!(Rule::IntegerLiteral, "0_");
+        parse_err!(Rule::IntegerLiteral, "_100_000_000");
+        parse_err!(Rule::IntegerLiteral, "1__0000_0000");
+        parse_err!(Rule::IntegerLiteral, "000000000129__3812753840");
     }
 
     #[test]
     fn floats() {
-        parse_ok!(Rule::Float, "123.4");
-        parse_ok!(Rule::Float, "000.000");
-        parse_ok!(Rule::Float, "98.7654321");
-        parse_ok!(Rule::Float, "987_654.50");
-        parse_ok!(Rule::Float, "987_654.100_100");
+        parse_ok!(Rule::FloatLiteral, "123.4");
+        parse_ok!(Rule::FloatLiteral, "000.000");
+        parse_ok!(Rule::FloatLiteral, "98.7654321");
+        parse_ok!(Rule::FloatLiteral, "987_654.50");
+        parse_ok!(Rule::FloatLiteral, "987_654.100_100");
 
-        parse_err!(Rule::Float, "123");
-        parse_err!(Rule::Float, "1.");
-        parse_err!(Rule::Float, ".1");
-        parse_err!(Rule::Float, "5000..0");
-        parse_err!(Rule::Float, "1.2.3");
+        parse_err!(Rule::FloatLiteral, "123");
+        parse_err!(Rule::FloatLiteral, "1.");
+        parse_err!(Rule::FloatLiteral, ".1");
+        parse_err!(Rule::FloatLiteral, "5000..0");
+        parse_err!(Rule::FloatLiteral, "1.2.3");
     }
 
     #[test]
