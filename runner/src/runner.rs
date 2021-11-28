@@ -28,18 +28,6 @@ impl<'a> Runner<'a> {
         }
     }
 
-    fn define_struct(&self) {
-        todo!()
-    }
-
-    fn define_enum(&self) {
-        todo!()
-    }
-
-    fn define_function(&self) {
-        todo!()
-    }
-
     fn eval_expr(&mut self, expr: &Expression) -> Value {
         use Expression::*;
         match expr {
@@ -54,10 +42,6 @@ impl<'a> Runner<'a> {
             CompOperation(comp) => self.eval_comparison(comp),
             _ => todo!(),
         }
-    }
-
-    fn eval_if(&self) {
-        todo!()
     }
 
     // TODO assignment returns the assigned value?
@@ -82,7 +66,6 @@ impl<'a> Runner<'a> {
             LessEquals => eval_less_equals(left, right),
             Greater => eval_greater(left, right),
             GreaterEquals => eval_greater_equals(left, right),
-            _ => todo!(),
         }
     }
 

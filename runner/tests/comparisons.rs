@@ -7,7 +7,11 @@ use runner::ast::{
 fn comparisons() {
     use runner::ast::ComparisonOperator::*;
 
-    fn assert_cmp(var: &'static str, op: ComparisonOperator, value: Expression<'static>) -> HighLevelItem<'static> {
+    fn assert_cmp(
+        var: &'static str,
+        op: ComparisonOperator,
+        value: Expression<'static>,
+    ) -> HighLevelItem<'static> {
         HighLevelItem::Expr(Expression::FunctionCall(FunctionCall {
             name: "assert",
             params: vec![Expression::CompOperation(Box::new(ComparisonOperation {
@@ -39,8 +43,6 @@ fn comparisons() {
             assert_cmp("text", NotEquals, Expression::StringLiteral("bar")),
         ],
     };
-
-    dbg!(&program);
 
     // run
     let mut stdout = Vec::new();
