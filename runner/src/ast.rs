@@ -10,8 +10,11 @@ pub enum HighLevelItem<'a> {
 }
 
 pub struct Function<'a> {
+    pub public: bool,
     pub name: &'a str,
-    // TODO params, body, return type
+    pub params: Vec<FunctionArgument<'a>>,
+    pub output: &'a str,
+    pub body: Expression<'a>,
 }
 
 pub struct Struct<'a> {
@@ -33,13 +36,65 @@ pub struct Assignment<'a> {
 pub enum Expression<'a> {
     Identifier(&'a str),
     Assignment(Box<Assignment<'a>>),
-    Boolean(bool),
-    Integer(i64),
-    Char(&'a str),
+    BooleanLiteral(bool),
+    IntegerLiteral(i64),
+    CharLiteral(char),
+    StringLiteral(&'a str),
     FunctionCall(FunctionCall<'a>),
+    ArithOperation(ArithmeticOperation<'a>),
+    CompOperation(ComparisonOperation<'a>),
+    BoolOperation(BooleanOperation<'a>),
+    Negation(),
+}
+
+pub struct ArithmeticOperation<'a> {
+    pub left: Box<Expression<'a>>,
+    pub op: ArithmeticOperator,
+    pub right: Box<Expression<'a>>,
+}
+
+pub struct ComparisonOperation<'a> {
+    pub left: Box<Expression<'a>>,
+    pub op: ComparisonOperator,
+    pub right: Box<Expression<'a>>,
+}
+
+pub struct BooleanOperation<'a> {
+    pub left: Box<Expression<'a>>,
+    pub op: BooleanOperator,
+    pub right: Box<Expression<'a>>,
+}
+
+pub enum ArithmeticOperator {
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
+    Power,
+    Modulo,
+}
+
+pub enum BooleanOperator {
+    Or,
+    And,
+    Xor,
+}
+
+pub enum ComparisonOperator {
+    Equals,
+    NotEquals,
+    Less,
+    LessEqual,
+    Greater,
+    GreaterEqual,
 }
 
 pub struct FunctionCall<'a> {
     pub name: &'a str,
     pub params: Vec<Expression<'a>>,
+}
+
+pub struct FunctionArgument<'a> {
+    pub name: &'a str,
+    pub type_: &'a str,
 }

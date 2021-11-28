@@ -7,14 +7,14 @@ fn test_hello() {
         items: vec![HighLevelItem::Expr(Expression::FunctionCall(
             FunctionCall {
                 name: "println",
-                params: vec![Expression::Char("Hello, World!")],
+                params: vec![Expression::StringLiteral("Hello, World!")],
             },
         ))],
     };
 
     // run
     let mut stdout = Vec::new();
-    runner::runner::Runner::run(&program, &mut stdout);
+    runner::Runner::run(&program, &mut stdout);
 
     // check output
     assert_eq!(String::from_utf8(stdout).unwrap(), "Hello, World!\n")

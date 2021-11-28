@@ -3,23 +3,29 @@ use std::collections::HashMap;
 pub struct Stack(Vec<u8>);
 
 pub struct Scope {
-    symbols: Vec<String>,
+    pub symbols: Vec<String>,
 }
 
 #[derive(Default)]
 pub struct SymbolTable {
-    symbols: HashMap<String, Vec<Value>>,
+    pub symbols: HashMap<String, Value>,
 }
 
+#[derive(Clone)]
 pub enum Value {
     Void,
     Boolean(bool),
     Integer(i64),
     String(String),
+    Float(f64),
 }
 
 impl SymbolTable {
-    fn create_var() {}
-    fn remove_var() {}
-    fn create_function() {}
+    pub fn create_var(&mut self, name: &str, value: Value) {
+        self.symbols.insert(name.into(), value);
+    }
+
+    pub fn get_value(&self, name: &str) -> Option<&Value> {
+        self.symbols.get(name)
+    }
 }

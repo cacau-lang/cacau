@@ -1,4 +1,6 @@
+mod runner;
+
 pub mod ast;
 pub mod mem;
-pub mod runner;
 
+pub use self::runner::Runner;
