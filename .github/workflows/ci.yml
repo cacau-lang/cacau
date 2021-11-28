@@ -1,0 +1,45 @@
+# Runs Rustfmt and Clippy on pull requests.
+# These tests occur when creating pull requests to any branch.
+name: Continuous Integration
+
+on:
+  pull_request:
+    branches:
+      - "*"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Dependency caching
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      
+      - name: Rust toolchain installation
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: clippy, rustfmt
+      
+      - name: Code formatting (rustfmt)
+        run: cargo fmt -- --check
+      
+      - name: Code suggestions and improvements (clippy)
+        run: cargo clippy -- -D clippy::all
+      
+      # Uncomment to enable unit testing
+      #- name: Unit tests
+      #  run: cargo test
+
