@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub struct CacauProgram<'a> {
     pub items: Vec<HighLevelItem<'a>>,
 }
@@ -97,9 +98,9 @@ pub enum ComparisonOperator {
     Equals,
     NotEquals,
     Less,
-    LessEqual,
+    LessEquals,
     Greater,
-    GreaterEqual,
+    GreaterEquals,
 }
 
 #[derive(Debug)]

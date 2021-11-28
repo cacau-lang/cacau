@@ -71,72 +71,74 @@ impl<'a> Runner<'a> {
 
     fn eval_comparison(&mut self, comp: &ComparisonOperation) -> Value {
         use crate::ast::ComparisonOperator::*;
-        use crate::mem::Value::*;
 
         let left = self.eval_expr(&comp.left);
         let right = self.eval_expr(&comp.right);
 
         match comp.op {
-            Equals => match (&left, &right) {
-                (Integer(val1), Integer(val2)) => Boolean(val1 == val2),
-                (String(val1), String(val2)) => Boolean(val1 == val2),
-                (Char(val1), Char(val2)) => Boolean(val1 == val2),
-                (Float(val1), Float(val2)) =>
-                {
-                    #[allow(clippy::float_cmp)]
-                    Boolean(val1 == val2)
-                }
-                (Boolean(val1), Boolean(val2)) => Boolean(val1 == val2),
-                _ => todo!("Comparison of {:?} and {:?} not implemented", &left, &right),
-            },
+            Equals => eval_equals(left, right),
+            NotEquals => eval_not_equals(left, right),
+            Less => eval_less(left, right),
+            LessEquals => eval_less_equals(left, right),
+            Greater => eval_greater(left, right),
+            GreaterEquals => eval_greater_equals(left, right),
             _ => todo!(),
         }
     }
 
     fn eval_function_call(&mut self, call: &FunctionCall) -> Value {
-        // HACK println is hardcoded here
         if call.name == "println" && call.params.len() == 1 {
-            match self.eval_expr(&call.params[0]) {
-                Value::String(ref str) => {
-                    let _bytes_written = self.stdout.write(str.as_bytes()).unwrap();
-                    let _bytes_written = self.stdout.write(b"\n").unwrap();
-                }
-                Value::Integer(val) => {
-                    let str = format!("{}\n", val);
-                    let _bytes_written = self.stdout.write(str.as_bytes()).unwrap();
-                }
-                Value::Float(val) => {
-                    let fmt = format!("{:.5}\n", val);
-                    let _bytes_written = self.stdout.write(fmt.as_bytes()).unwrap();
-                }
-                Value::Boolean(val) => {
-                    let fmt = format!("{}\n", val);
-                    let _bytes_written = self.stdout.write(fmt.as_bytes()).unwrap();
-                }
-                Value::Char(val) => {
-                    let fmt = format!("{}\n", val);
-                    let _bytes_written = self.stdout.write(fmt.as_bytes()).unwrap();
-                }
-                _ => todo!(),
-            }
-            Value::Void
+            self.eval_println(call)
         } else if call.name == "assert" && call.params.len() == 1 {
-            match self.eval_expr(&call.params[0]) {
-                Value::Boolean(assert_ok) => {
-                    if !assert_ok {
-                        // TODO panic only the runtime
-                        // TODO show expression that failed
-                        panic!("Assert failed");
-                    } else {
-                        Value::Void
-                    }
-                }
-                _ => Value::Void,
-            }
+            self.eval_assert(call)
         } else {
-            // TODO function not found
-            Value::Void
+            panic!(
+                "Function {} could not be found or has invalid number of args",
+                call.name
+            )
         }
+    }
+
+    fn eval_assert(&mut self, call: &FunctionCall) -> Value {
+        match self.eval_expr(&call.params[0]) {
+            Value::Boolean(assert_ok) => {
+                if !assert_ok {
+                    // TODO panic only the runtime
+                    // TODO show expression that failed
+                    panic!("Assert failed");
+                } else {
+                    Value::Void
+                }
+            }
+            _ => Value::Void,
+        }
+    }
+
+    fn eval_println(&mut self, call: &FunctionCall) -> Value {
+        match self.eval_expr(&call.params[0]) {
+            Value::String(ref str) => {
+                let _bytes_written = self.stdout.write(str.as_bytes()).unwrap();
+                let _bytes_written = self.stdout.write(b"\n").unwrap();
+            }
+            Value::Integer(val) => {
+                let str = format!("{}\n", val);
+                let _bytes_written = self.stdout.write(str.as_bytes()).unwrap();
+            }
+            Value::Float(val) => {
+                let fmt = format!("{:.5}\n", val);
+                let _bytes_written = self.stdout.write(fmt.as_bytes()).unwrap();
+            }
+            Value::Boolean(val) => {
+                let fmt = format!("{}\n", val);
+                let _bytes_written = self.stdout.write(fmt.as_bytes()).unwrap();
+            }
+            Value::Char(val) => {
+                let fmt = format!("{}\n", val);
+                let _bytes_written = self.stdout.write(fmt.as_bytes()).unwrap();
+            }
+            _ => todo!(),
+        }
+        Value::Void
     }
 
     fn eval_identifier(&self, name: &str) -> Value {
@@ -146,5 +148,85 @@ impl<'a> Runner<'a> {
             // TODO panic inside runtime
             panic!("Could not find {}", name)
         }
+    }
+}
+
+fn eval_equals(left: Value, right: Value) -> Value {
+    use crate::mem::Value::*;
+    match (&left, &right) {
+        (Integer(val1), Integer(val2)) => Boolean(val1 == val2),
+        (String(val1), String(val2)) => Boolean(val1 == val2),
+        (Char(val1), Char(val2)) => Boolean(val1 == val2),
+        (Float(val1), Float(val2)) =>
+        {
+            #[allow(clippy::float_cmp)]
+            Boolean(val1 == val2)
+        }
+        (Boolean(val1), Boolean(val2)) => Boolean(val1 == val2),
+        _ => todo!("Comparison of {:?} and {:?} not implemented", &left, &right),
+    }
+}
+
+fn eval_less(left: Value, right: Value) -> Value {
+    use crate::mem::Value::*;
+    match (&left, &right) {
+        (Integer(val1), Integer(val2)) => Boolean(val1 < val2),
+        (String(val1), String(val2)) => Boolean(val1 < val2),
+        (Char(val1), Char(val2)) => Boolean(val1 < val2),
+        (Float(val1), Float(val2)) => Boolean(val1 < val2),
+        (Boolean(val1), Boolean(val2)) => Boolean(val1 < val2),
+        _ => todo!("Comparison of {:?} and {:?} not implemented", &left, &right),
+    }
+}
+
+fn eval_less_equals(left: Value, right: Value) -> Value {
+    use crate::mem::Value::*;
+    match (&left, &right) {
+        (Integer(val1), Integer(val2)) => Boolean(val1 <= val2),
+        (String(val1), String(val2)) => Boolean(val1 <= val2),
+        (Char(val1), Char(val2)) => Boolean(val1 <= val2),
+        (Float(val1), Float(val2)) => Boolean(val1 <= val2),
+        (Boolean(val1), Boolean(val2)) => Boolean(val1 <= val2),
+        _ => todo!("Comparison of {:?} and {:?} not implemented", &left, &right),
+    }
+}
+
+fn eval_greater(left: Value, right: Value) -> Value {
+    use crate::mem::Value::*;
+    match (&left, &right) {
+        (Integer(val1), Integer(val2)) => Boolean(val1 > val2),
+        (String(val1), String(val2)) => Boolean(val1 > val2),
+        (Char(val1), Char(val2)) => Boolean(val1 > val2),
+        (Float(val1), Float(val2)) => Boolean(val1 > val2),
+        (Boolean(val1), Boolean(val2)) => Boolean(val1 > val2),
+        _ => todo!("Comparison of {:?} and {:?} not implemented", &left, &right),
+    }
+}
+
+fn eval_greater_equals(left: Value, right: Value) -> Value {
+    use crate::mem::Value::*;
+    match (&left, &right) {
+        (Integer(val1), Integer(val2)) => Boolean(val1 >= val2),
+        (String(val1), String(val2)) => Boolean(val1 >= val2),
+        (Char(val1), Char(val2)) => Boolean(val1 >= val2),
+        (Float(val1), Float(val2)) => Boolean(val1 >= val2),
+        (Boolean(val1), Boolean(val2)) => Boolean(val1 >= val2),
+        _ => todo!("Comparison of {:?} and {:?} not implemented", &left, &right),
+    }
+}
+
+fn eval_not_equals(left: Value, right: Value) -> Value {
+    use crate::mem::Value::*;
+    match (&left, &right) {
+        (Integer(val1), Integer(val2)) => Boolean(val1 != val2),
+        (String(val1), String(val2)) => Boolean(val1 != val2),
+        (Char(val1), Char(val2)) => Boolean(val1 != val2),
+        (Float(val1), Float(val2)) =>
+        {
+            #[allow(clippy::float_cmp)]
+            Boolean(val1 != val2)
+        }
+        (Boolean(val1), Boolean(val2)) => Boolean(val1 != val2),
+        _ => todo!("Comparison of {:?} and {:?} not implemented", &left, &right),
     }
 }
