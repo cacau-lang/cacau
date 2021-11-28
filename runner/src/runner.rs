@@ -1,7 +1,10 @@
 use std::io::Write;
 
 use crate::{
-    ast::{Assignment, CacauProgram, ComparisonOperation, Expression, FunctionCall, HighLevelItem},
+    ast::{
+        ArithmeticOperation, Assignment, BooleanOperation, CacauProgram, ComparisonOperation,
+        Expression, FunctionCall, HighLevelItem,
+    },
     mem::{SymbolTable, Value},
 };
 
@@ -39,8 +42,11 @@ impl<'a> Runner<'a> {
             StringLiteral(string) => Value::String(String::from(*string)),
             Assignment(assign) => self.eval_assignment(assign),
             Identifier(name) => self.eval_identifier(name),
-            CompOperation(comp) => self.eval_comparison(comp),
-            _ => todo!(),
+            CompOperation(comp) => self.eval_comparison_oper(comp),
+            ArithOperation(arith) => self.eval_arithmetic_oper(arith),
+            BoolOperation(boolean) => self.eval_boolean_oper(boolean),
+            Not(expr) => eval_not(self.eval_expr(expr)),
+            Minus(expr) => eval_minus(self.eval_expr(expr)),
         }
     }
 
@@ -53,7 +59,7 @@ impl<'a> Runner<'a> {
         Value::Void
     }
 
-    fn eval_comparison(&mut self, comp: &ComparisonOperation) -> Value {
+    fn eval_comparison_oper(&mut self, comp: &ComparisonOperation) -> Value {
         use crate::ast::ComparisonOperator::*;
 
         let left = self.eval_expr(&comp.left);
@@ -66,6 +72,34 @@ impl<'a> Runner<'a> {
             LessEquals => eval_less_equals(left, right),
             Greater => eval_greater(left, right),
             GreaterEquals => eval_greater_equals(left, right),
+        }
+    }
+
+    fn eval_arithmetic_oper(&mut self, arith: &ArithmeticOperation) -> Value {
+        use crate::ast::ArithmeticOperator::*;
+
+        let left = self.eval_expr(&arith.left);
+        let right = self.eval_expr(&arith.right);
+
+        match arith.op {
+            Add => eval_add(left, right),
+            Subtract => eval_subtract(left, right),
+            Multiply => eval_multiply(left, right),
+            Divide => eval_divide(left, right),
+            Power => eval_power(left, right),
+            Modulo => eval_modulo(left, right),
+        }
+    }
+
+    fn eval_boolean_oper(&mut self, boolean: &BooleanOperation) -> Value {
+        use crate::ast::BooleanOperator::*;
+
+        let left = self.eval_expr(&boolean.left);
+        let right = self.eval_expr(&boolean.right);
+
+        match boolean.op {
+            Or => eval_or(left, right),
+            And => eval_and(left, right),
         }
     }
 
@@ -131,6 +165,130 @@ impl<'a> Runner<'a> {
             // TODO panic inside runtime
             panic!("Could not find {}", name)
         }
+    }
+}
+
+fn eval_or(left: Value, right: Value) -> Value {
+    use crate::mem::Value::Boolean;
+    match (&left, &right) {
+        (Boolean(val1), Boolean(val2)) => Boolean(*val1 || *val2),
+        _ => todo!(
+            "Boolean OR not implemented for {:?} and {:?}",
+            &left,
+            &right
+        ),
+    }
+}
+
+fn eval_and(left: Value, right: Value) -> Value {
+    use crate::mem::Value::Boolean;
+    match (&left, &right) {
+        (Boolean(val1), Boolean(val2)) => Boolean(*val1 && *val2),
+        _ => todo!(
+            "Boolean AND not implemented for {:?} and {:?}",
+            &left,
+            &right
+        ),
+    }
+}
+
+fn eval_not(value: Value) -> Value {
+    use crate::mem::Value::Boolean;
+    match &value {
+        Boolean(value) => Boolean(!value),
+        _ => todo!("Boolean NOT not implemented for {:?}", &value),
+    }
+}
+
+fn eval_minus(value: Value) -> Value {
+    use crate::mem::Value::*;
+    match &value {
+        Integer(val) => Integer(-val),
+        Float(val) => Float(-val),
+        _ => todo!("Unary minus not implemented for {:?}", &value),
+    }
+}
+
+fn eval_add(left: Value, right: Value) -> Value {
+    use crate::mem::Value::*;
+    match (&left, &right) {
+        (Integer(val1), Integer(val2)) => Integer(val1 + val2),
+        (Float(val1), Float(val2)) => Float(val1 + val2),
+        (Integer(val1), Float(val2)) => Float(*val1 as f64 + val2),
+        (Float(val1), Integer(val2)) => Float(val1 + *val2 as f64),
+        (String(val1), String(val2)) => String(val1.to_owned() + val2),
+        _ => todo!("Addition of {:?} and {:?} not implemented", &left, &right),
+    }
+}
+
+fn eval_subtract(left: Value, right: Value) -> Value {
+    use crate::mem::Value::*;
+    match (&left, &right) {
+        (Integer(val1), Integer(val2)) => Integer(val1 - val2),
+        (Float(val1), Float(val2)) => Float(val1 - val2),
+        (Integer(val1), Float(val2)) => Float(*val1 as f64 - val2),
+        (Float(val1), Integer(val2)) => Float(val1 - *val2 as f64),
+        _ => todo!(
+            "Subtraction of {:?} and {:?} not implemented",
+            &left,
+            &right
+        ),
+    }
+}
+
+fn eval_multiply(left: Value, right: Value) -> Value {
+    use crate::mem::Value::*;
+    match (&left, &right) {
+        (Integer(val1), Integer(val2)) => Integer(val1 * val2),
+        (Float(val1), Float(val2)) => Float(val1 * val2),
+        (Integer(val1), Float(val2)) => Float(*val1 as f64 * val2),
+        (Float(val1), Integer(val2)) => Float(val1 * *val2 as f64),
+        _ => todo!(
+            "Multiplication of {:?} and {:?} not implemented",
+            &left,
+            &right
+        ),
+    }
+}
+
+fn eval_divide(left: Value, right: Value) -> Value {
+    use crate::mem::Value::*;
+    // TODO check division by zero
+    match (&left, &right) {
+        (Integer(val1), Integer(val2)) => Integer(val1 / val2),
+        (Float(val1), Float(val2)) => Float(val1 / val2),
+        (Integer(val1), Float(val2)) => Float(*val1 as f64 / val2),
+        (Float(val1), Integer(val2)) => Float(val1 / *val2 as f64),
+        _ => todo!("Divisio of {:?} and {:?} not implemented", &left, &right),
+    }
+}
+
+fn eval_power(left: Value, right: Value) -> Value {
+    use crate::mem::Value::*;
+    match (&left, &right) {
+        // TODO int < 0
+        // TODO int > u32
+        (Integer(val1), Integer(val2)) => Integer(val1.pow(*val2 as u32)),
+        (Float(val1), Float(val2)) => Float(val1.powf(*val2)),
+        (Integer(val1), Float(val2)) => Float((*val1 as f64).powf(*val2)),
+        (Float(val1), Integer(val2)) => Float(val1.powf(*val2 as f64)),
+        _ => todo!(
+            "Exponentiation of {:?} by {:?} not implemented",
+            &left,
+            &right
+        ),
+    }
+}
+
+fn eval_modulo(left: Value, right: Value) -> Value {
+    use crate::mem::Value::*;
+    // TODO div by zero
+    match (&left, &right) {
+        (Integer(val1), Integer(val2)) => Integer(val1 % val2),
+        (Float(val1), Float(val2)) => Float(val1 % val2),
+        (Integer(val1), Float(val2)) => Float(*val1 as f64 % val2),
+        (Float(val1), Integer(val2)) => Float(val1 % *val2 as f64),
+        _ => todo!("Modulo of {:?} by {:?} not implemented", &left, &right),
     }
 }
 

@@ -23,7 +23,7 @@ pub struct Function<'a> {
 #[derive(Debug)]
 pub struct Struct<'a> {
     pub name: &'a str,
-    // TODO fiels and their types
+    // TODO fields and their types
 }
 
 #[derive(Debug)]
@@ -52,7 +52,8 @@ pub enum Expression<'a> {
     ArithOperation(Box<ArithmeticOperation<'a>>),
     CompOperation(Box<ComparisonOperation<'a>>),
     BoolOperation(Box<BooleanOperation<'a>>),
-    Negation(),
+    Not(Box<Expression<'a>>),
+    Minus(Box<Expression<'a>>),
 }
 
 #[derive(Debug)]
@@ -90,7 +91,6 @@ pub enum ArithmeticOperator {
 pub enum BooleanOperator {
     Or,
     And,
-    Xor,
 }
 
 #[derive(Debug)]
