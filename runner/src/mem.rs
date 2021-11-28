@@ -8,7 +8,7 @@ pub struct Scope {
 
 #[derive(Default)]
 pub struct SymbolTable {
-    pub symbols: HashMap<String, Value>,
+    symbols: HashMap<String, Value>,
 }
 
 #[derive(Clone)]
@@ -16,8 +16,9 @@ pub enum Value {
     Void,
     Boolean(bool),
     Integer(i64),
-    String(String),
     Float(f64),
+    Char(char),
+    String(String),
 }
 
 impl SymbolTable {

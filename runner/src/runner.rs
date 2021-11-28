@@ -45,6 +45,9 @@ impl<'a> Runner<'a> {
         match expr {
             FunctionCall(call) => self.eval_function_call(call),
             IntegerLiteral(integer) => Value::Integer(*integer),
+            FloatLiteral(float) => Value::Float(*float),
+            BooleanLiteral(boolean) => Value::Boolean(*boolean),
+            CharLiteral(char) => Value::Char(*char),
             StringLiteral(string) => Value::String(String::from(*string)),
             Assignment(assign) => self.eval_assignment(assign),
             Identifier(name) => self.eval_identifier(name),
@@ -76,6 +79,18 @@ impl<'a> Runner<'a> {
                 Value::Integer(val) => {
                     let str = format!("{}\n", val);
                     let _bytes_written = self.stdout.write(str.as_bytes()).unwrap();
+                }
+                Value::Float(val) => {
+                    let fmt = format!("{:.5}\n", val);
+                    let _bytes_written = self.stdout.write(fmt.as_bytes()).unwrap();
+                }
+                Value::Boolean(val) => {
+                    let fmt = format!("{}\n", val);
+                    let _bytes_written = self.stdout.write(fmt.as_bytes()).unwrap();
+                }
+                Value::Char(val) => {
+                    let fmt = format!("{}\n", val);
+                    let _bytes_written = self.stdout.write(fmt.as_bytes()).unwrap();
                 }
                 _ => todo!(),
             }

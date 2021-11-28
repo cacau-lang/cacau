@@ -38,6 +38,7 @@ pub enum Expression<'a> {
     Assignment(Box<Assignment<'a>>),
     BooleanLiteral(bool),
     IntegerLiteral(i64),
+    FloatLiteral(f64),
     CharLiteral(char),
     StringLiteral(&'a str),
     FunctionCall(FunctionCall<'a>),
