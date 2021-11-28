@@ -1,7 +1,7 @@
 use std::io::Write;
 
 use crate::{
-    ast::{Assignment, CacauProgram, Expression, FunctionCall, HighLevelItem},
+    ast::{Assignment, CacauProgram, ComparisonOperation, Expression, FunctionCall, HighLevelItem},
     mem::{SymbolTable, Value},
 };
 
@@ -51,6 +51,7 @@ impl<'a> Runner<'a> {
             StringLiteral(string) => Value::String(String::from(*string)),
             Assignment(assign) => self.eval_assignment(assign),
             Identifier(name) => self.eval_identifier(name),
+            CompOperation(comp) => self.eval_comparison(comp),
             _ => todo!(),
         }
     }
@@ -66,6 +67,30 @@ impl<'a> Runner<'a> {
         self.symbol_table.create_var(assign.name, val);
 
         Value::Void
+    }
+
+    fn eval_comparison(&mut self, comp: &ComparisonOperation) -> Value {
+        use crate::ast::ComparisonOperator::*;
+        use crate::mem::Value::*;
+
+        let left = self.eval_expr(&comp.left);
+        let right = self.eval_expr(&comp.right);
+
+        match comp.op {
+            Equals => match (&left, &right) {
+                (Integer(val1), Integer(val2)) => Boolean(val1 == val2),
+                (String(val1), String(val2)) => Boolean(val1 == val2),
+                (Char(val1), Char(val2)) => Boolean(val1 == val2),
+                (Float(val1), Float(val2)) =>
+                {
+                    #[allow(clippy::float_cmp)]
+                    Boolean(val1 == val2)
+                }
+                (Boolean(val1), Boolean(val2)) => Boolean(val1 == val2),
+                _ => todo!("Comparison of {:?} and {:?} not implemented", &left, &right),
+            },
+            _ => todo!(),
+        }
     }
 
     fn eval_function_call(&mut self, call: &FunctionCall) -> Value {
@@ -96,7 +121,18 @@ impl<'a> Runner<'a> {
             }
             Value::Void
         } else if call.name == "assert" && call.params.len() == 1 {
-            todo!();
+            match self.eval_expr(&call.params[0]) {
+                Value::Boolean(assert_ok) => {
+                    if !assert_ok {
+                        // TODO panic only the runtime
+                        // TODO show expression that failed
+                        panic!("Assert failed");
+                    } else {
+                        Value::Void
+                    }
+                }
+                _ => Value::Void,
+            }
         } else {
             // TODO function not found
             Value::Void
@@ -107,8 +143,8 @@ impl<'a> Runner<'a> {
         if let Some(value) = self.symbol_table.get_value(name) {
             value.clone()
         } else {
-            // TODO error instead
-            Value::Void
+            // TODO panic inside runtime
+            panic!("Could not find {}", name)
         }
     }
 }

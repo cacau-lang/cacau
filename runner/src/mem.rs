@@ -11,7 +11,7 @@ pub struct SymbolTable {
     symbols: HashMap<String, Value>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Value {
     Void,
     Boolean(bool),

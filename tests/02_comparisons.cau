@@ -29,15 +29,15 @@ assert(integer < 20);
 assert(integer <= 20);
 assert(integer != 0);
 
-let decimal = 100.0;
-assert(integer == 10.0);
-assert(integer >= 10.0);
-assert(integer <= 10.0);
-assert(integer > 5.0);
-assert(integer >= 5.0);
-assert(integer < 20.0);
-assert(integer <= 20.0);
-assert(integer != 0.0);
+let decimal = 10.0;
+assert(decimal == 10.0);
+assert(decimal >= 10.0);
+assert(decimal <= 10.0);
+assert(decimal > 5.0);
+assert(decimal >= 5.0);
+assert(decimal < 20.0);
+assert(decimal <= 20.0);
+assert(decimal != 0.0);
 
 let character = '1';
 assert(character == '1');
