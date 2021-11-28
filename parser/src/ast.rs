@@ -62,19 +62,18 @@ impl CacauParser {
     }
 
     pub fn StringLiteral(input: Node) -> Result<StringLiteral> {
-        let x: String = input.as_str().to_owned();
-
-        Ok(StringLiteral(x))
+        Ok(StringLiteral(input.as_str().into()))
     }
 
     pub fn Literal(input: Node) -> Result<Literal> {
-        Ok(match_nodes!(input.into_children();
-        [FloatLiteral(n)] => Literal::FloatLiteral(n),
-        [IntegerLiteral(n)] => Literal::IntegerLiteral(n),
-        [CharLiteral(n)] => Literal::CharLiteral(n),
-        [BooleanLiteral(n)] => Literal::BooleanLiteral(n),
-        [StringLiteral(n)] => Literal::StringLiteral(n),
-            ))
+        let literal = match_nodes!(input.into_children();
+            [FloatLiteral(n)] => Literal::FloatLiteral(n),
+            [IntegerLiteral(n)] => Literal::IntegerLiteral(n),
+            [CharLiteral(n)] => Literal::CharLiteral(n),
+            [BooleanLiteral(n)] => Literal::BooleanLiteral(n),
+            [StringLiteral(n)] => Literal::StringLiteral(n),
+        );
+        Ok(literal)
     }
 
     pub fn Identifier(input: Node) -> Result<Identifier> {
@@ -84,48 +83,27 @@ impl CacauParser {
     }
 
     pub fn Term(input: Node) -> Result<Term> {
-        Ok(match_nodes!(input.into_children();
-        [Literal(n)] => Term::Literal(n),
-        [Identifier(n)] => Term::Identifier(n),
-        [ArithmeticOperation(n)] => n,
-            ))
+        let term = match_nodes!(input.into_children();
+            [Literal(n)] => Term::Literal(n),
+            [Identifier(n)] => Term::Identifier(n),
+            [ArithmeticOperation(n)] => n,
+        );
+        Ok(term)
     }
 
     #[prec_climb(Term, PREC_CLIMBER)]
     pub fn ArithmeticOperation(left: Term, op: Node, right: Term) -> Result<Term> {
-        match op.as_rule() {
-            Rule::Add => Ok(Term::ArithmeticOperation(Box::new(ArithmeticOperation {
-                left,
-                op: ArithmeticOperator::Add,
-                right,
-            }))),
-            Rule::Subtract => Ok(Term::ArithmeticOperation(Box::new(ArithmeticOperation {
-                left,
-                op: ArithmeticOperator::Subtract,
-                right,
-            }))),
-            Rule::Multiply => Ok(Term::ArithmeticOperation(Box::new(ArithmeticOperation {
-                left,
-                op: ArithmeticOperator::Multiply,
-                right,
-            }))),
-            Rule::Divide => Ok(Term::ArithmeticOperation(Box::new(ArithmeticOperation {
-                left,
-                op: ArithmeticOperator::Divide,
-                right,
-            }))),
-            Rule::Power => Ok(Term::ArithmeticOperation(Box::new(ArithmeticOperation {
-                left,
-                op: ArithmeticOperator::Power,
-                right,
-            }))),
-            Rule::Modulo => Ok(Term::ArithmeticOperation(Box::new(ArithmeticOperation {
-                left,
-                op: ArithmeticOperator::Modulo,
-                right,
-            }))),
-            r => Err(op.error(format!("Rule {:?} isn't an operator", r))),
-        }
+        let op = match op.as_rule() {
+            Rule::Add => ArithmeticOperator::Add,
+            Rule::Subtract => ArithmeticOperator::Subtract,
+            Rule::Multiply => ArithmeticOperator::Multiply,
+            Rule::Divide => ArithmeticOperator::Divide,
+            Rule::Power => ArithmeticOperator::Power,
+            Rule::Modulo => ArithmeticOperator::Modulo,
+            rule => return Err(op.error(format!("Rule {:?} isn't an operator", rule))),
+        };
+        let op = Box::new(ArithmeticOperation { left, op, right });
+        Ok(Term::ArithmeticOperation(op))
     }
 
     /*
@@ -156,31 +134,6 @@ impl CacauParser {
                             op: ArithmeticOperator::Add,
                             right,
                         }),
-                        Rule::Subtract => Ok(ArithmeticOperation {
-                            left,
-                            op: ArithmeticOperator::Subtract,
-                            right,
-                        }),
-                        Rule::Multiply => Ok(ArithmeticOperation {
-                            left,
-                            op: ArithmeticOperator::Multiply,
-                            right,
-                        }),
-                        Rule::Divide => Ok(ArithmeticOperation {
-                            left,
-                            op: ArithmeticOperator::Divide,
-                            right,
-                        }),
-                        Rule::Power => Ok(ArithmeticOperation {
-                            left,
-                            op: ArithmeticOperator::Power,
-                            right,
-                        }),
-                        Rule::Modulo => Ok(ArithmeticOperation {
-                            left,
-                            op: ArithmeticOperator::Modulo,
-                            right,
-                        }),
                         r => panic!(),
                     }
                 }
@@ -192,6 +145,7 @@ impl CacauParser {
     }*/
 }
 
+#[allow(clippy::enum_variant_names)]
 #[derive(Debug)]
 pub enum Literal {
     FloatLiteral(FloatLiteral),
