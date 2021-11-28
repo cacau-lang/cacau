@@ -91,7 +91,6 @@ dependencies = [
  "lazy_static",
  "pest",
  "pest_consume",
- "pest_derive",
 ]
 
 [[package]]
