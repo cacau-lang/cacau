@@ -1,0 +1,15 @@
+[package]
+name = "parser_lalrpop"
+readme = "README.md"
+repository = "https://github.com/cacau-lang/cacau"
+license = "MIT"
+version = "0.1.0"
+edition = "2021"
+
+[build-dependencies]
+lalrpop = "0.19.6"
+
+[dependencies]
+ast = { path = "../ast" }
+lalrpop-util = { version = "0.19.6", features = ["lexer"] }
+regex = "1"

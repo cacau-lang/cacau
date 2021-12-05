@@ -1,0 +1,124 @@
+use std::str::FromStr;
+
+use ast::*;
+
+grammar;
+
+pub CacauProgram: CacauProgram = {
+    Statement* => CacauProgram {
+        items: <>
+    }
+}
+
+Statement: Statement = {
+    <expr: Expr> ";" => Statement::Expression(expr)
+}
+
+pub Expr = {
+    Cmp,
+};
+
+Cmp: Expr = {
+    <left: Cmp> <op: CmpOp> <right: Logic>
+        => Expr::Cmp(Box::new(CmpExpr{<>})),
+    Logic,
+}
+
+Logic: Expr = {
+    <left: Logic> <op: LogicOp> <right: Sum>
+        => Expr::Logic(Box::new(LogicExpr{<>})),
+    Sum,
+}
+
+Sum: Expr = {
+    <left: Sum> <op: SumOp> <right: Mul>
+        => Expr::Arith(Box::new(ArithExpr{<>})),
+    Mul,
+}
+
+Mul: Expr = {
+    <left: Mul> <op: MulOp> <right: Term>
+        => Expr::Arith(Box::new(ArithExpr{<>})),
+    Term
+}
+
+Term = {
+    Literal,
+    Identifier,
+    "(" <expr: Expr> ")" => Expr::Paren(Box::new(expr)),
+    FnCall,
+}
+
+FnCall: Expr = {
+    <callee: Term> "(" <params: FnCallParams> ")"
+        => Expr::FnCall(Box::new(FnCall{<>})),
+}
+
+FnCallParams: Vec<Expr> = {
+    (Expr ("," <Expr>)* ","?)? => match <> {
+        None => vec![],
+        Some((expr, exprs, _)) => {
+            let mut params = vec![expr];
+            params.extend(exprs);
+            params
+        }
+    }
+}
+
+CmpOp: CmpOp = {
+    "==" => CmpOp::EQ,
+    "!=" => CmpOp::NE,
+    ">"  => CmpOp::GT,
+    ">=" => CmpOp::GE,
+    "<"  => CmpOp::LT,
+    "<=" => CmpOp::LE,
+}
+
+LogicOp: LogicOp = {
+    "or"  => LogicOp::Or,
+    "and" => LogicOp::And,
+}
+
+SumOp: ArithOp = {
+    "+" => ArithOp::Add,
+    "-" => ArithOp::Sub,
+}
+
+MulOp: ArithOp = {
+    "*" => ArithOp::Mul,
+    "/" => ArithOp::Div,
+    "^" => ArithOp::Pow,
+    "%" => ArithOp::Mod,
+}
+
+Literal = {
+    Int,
+    Float,
+    Bool,
+    Char,
+    String,
+}
+
+match {
+    r"true|false"
+} else {
+    _
+}
+
+Identifier: Expr = <s: r"[a-zA-Z_@][a-zA-Z0-9_]*">
+    => Expr::Id(s.into());
+
+String: Expr = <s: r#""[^"]*""#>
+    => Expr::Lit(Lit::String(String::from(s.trim_matches('"'))));
+
+Char: Expr = <s: r"'[^']'">
+    => Expr::Lit(Lit::Char(s.chars().skip(1).next().expect("Could not parse char")));
+
+Float: Expr = <s: r"[0-9]+\\.[0-9]">
+    => Expr::Lit(Lit::Float(f64::from_str(s).expect("Could not parse float")));
+
+Int: Expr = <s: r"[0-9]+">
+    => Expr::Lit(Lit::Int(i64::from_str(s).expect("Could not parse int")));
+
+Bool: Expr = <s: r"true|false">
+    => Expr::Lit(Lit::Bool(bool::from_str(s).expect("Could not parse bool")));

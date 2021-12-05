@@ -2,5 +2,7 @@
 members = [
     "parser",
     "cacau",
-	"runner"
+	"runner",
+    "parser_lalrpop",
+    "ast"
 ]

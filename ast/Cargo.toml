@@ -1,0 +1,9 @@
+[package]
+name = "ast"
+readme = "README.md"
+repository = "https://github.com/cacau-lang/cacau"
+license = "MIT"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
