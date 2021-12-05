@@ -8,7 +8,7 @@ pub enum Statement {
     Fn(Function),
     Struct(),
     Enum(),
-    Expression(Expr),
+    Expr(Expr),
 }
 
 #[derive(Debug, PartialEq)]

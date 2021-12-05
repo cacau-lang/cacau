@@ -1,7 +1,13 @@
 #[macro_use]
 extern crate lalrpop_util;
 
-lalrpop_mod!(pub cacau);
+lalrpop_mod!(cacau);
+
+pub fn parse(input: &str) -> ast::CacauProgram {
+    crate::cacau::CacauProgramParser::new()
+        .parse(input)
+        .expect("Could not parse")
+}
 
 #[cfg(test)]
 mod test {
@@ -81,7 +87,7 @@ mod test {
         assert_eq!(
             parse_program(r#"println("Hello, world!");"#),
             CacauProgram {
-                items: vec![Statement::Expression(Expr::FnCall(b(FnCall {
+                items: vec![Statement::Expr(Expr::FnCall(b(FnCall {
                     callee: Expr::Id("println".into()),
                     params: vec![Expr::Lit(Lit::String("Hello, world!".into()))]
                 })))]
@@ -129,9 +135,7 @@ mod test {
             parse_exp("f(1)"),
             Expr::FnCall(b(FnCall {
                 callee: Expr::Id("f".into()),
-                params: vec![
-                    Expr::Lit(Lit::Int(1))
-                ]
+                params: vec![Expr::Lit(Lit::Int(1))]
             }))
         )
     }
@@ -142,9 +146,7 @@ mod test {
             parse_exp("f(\"a\")"),
             Expr::FnCall(b(FnCall {
                 callee: Expr::Id("f".into()),
-                params: vec![
-                    Expr::Lit(Lit::String("a".into()))
-                ]
+                params: vec![Expr::Lit(Lit::String("a".into()))]
             }))
         )
     }

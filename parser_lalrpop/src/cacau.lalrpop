@@ -11,7 +11,7 @@ pub CacauProgram: CacauProgram = {
 }
 
 Statement: Statement = {
-    <expr: Expr> ";" => Statement::Expression(expr)
+    <expr: Expr> ";" => Statement::Expr(expr)
 }
 
 pub Expr = {
@@ -100,7 +100,9 @@ Literal = {
 }
 
 match {
-    r"true|false"
+    r"true|false",
+    r"\s*" => { }, // ignore whitespaces
+    r"//[^\n\r]*[\n\r]*" => { }, // ignore comments
 } else {
     _
 }

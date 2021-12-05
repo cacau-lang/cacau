@@ -1,4 +1,4 @@
-use std::{env, fs};
+use std::{env, fs, io::BufWriter};
 
 use parser::{Rule, ParserTrait, ExpressionParser};
 
@@ -7,7 +7,9 @@ fn main() {
 
     let contents = fs::read_to_string(file).unwrap();
 
-    let parsed = ExpressionParser::parse(Rule::program, &contents).expect("failed to parse");
+    let parsed = parser_lalrpop::parse(contents.as_str());
 
-    println!("parsed: {}", parsed);
+    let mut writer = BufWriter::new(std::io::stdout());
+
+    runner::Runner::run(&parsed, &mut writer);
 }

@@ -1,12 +1,8 @@
 use std::io::Write;
 
-use crate::{
-    ast::{
-        ArithmeticOperation, Assignment, BooleanOperation, CacauProgram, ComparisonOperation,
-        Expression, FunctionCall, HighLevelItem,
-    },
-    mem::{SymbolTable, Value},
-};
+use ast::{CacauProgram, Statement, Expr, FnCall};
+
+use crate::mem::{SymbolTable, Value};
 
 pub struct Runner<'a> {
     stdout: &'a mut dyn Write,
@@ -21,7 +17,7 @@ impl<'a> Runner<'a> {
         };
 
         for item in program.items.iter() {
-            use HighLevelItem::*;
+            use Statement::*;
             match item {
                 Expr(ref expr) => {
                     runner.eval_expr(expr);
@@ -31,92 +27,95 @@ impl<'a> Runner<'a> {
         }
     }
 
-    fn eval_expr(&mut self, expr: &Expression) -> Value {
-        use Expression::*;
+    fn eval_expr(&mut self, expr: &Expr) -> Value {
+        use Expr::*;
         match expr {
-            FunctionCall(call) => self.eval_function_call(call),
-            IntegerLiteral(integer) => Value::Integer(*integer),
-            FloatLiteral(float) => Value::Float(*float),
-            BooleanLiteral(boolean) => Value::Boolean(*boolean),
-            CharLiteral(char) => Value::Char(*char),
-            StringLiteral(string) => Value::String(String::from(*string)),
-            Assignment(assign) => self.eval_assignment(assign),
-            Identifier(name) => self.eval_identifier(name),
-            CompOperation(comp) => self.eval_comparison_oper(comp),
-            ArithOperation(arith) => self.eval_arithmetic_oper(arith),
-            BoolOperation(boolean) => self.eval_boolean_oper(boolean),
-            Not(expr) => eval_not(self.eval_expr(expr)),
-            Minus(expr) => eval_minus(self.eval_expr(expr)),
+            FnCall(call) => self.eval_function_call(call),
+            Lit(ast::Lit::Int(integer)) => Value::Integer(*integer),
+            Lit(ast::Lit::Float(float)) => Value::Float(*float),
+            Lit(ast::Lit::Bool(boolean)) => Value::Boolean(*boolean),
+            Lit(ast::Lit::Char(char)) => Value::Char(*char),
+            Lit(ast::Lit::String(string)) => Value::String(string.clone()),
+            // Assignment(assign) => self.eval_assignment(assign),
+            // Identifier(name) => self.eval_identifier(name),
+            // CompOperation(comp) => self.eval_comparison_oper(comp),
+            // ArithOperation(arith) => self.eval_arithmetic_oper(arith),
+            // BoolOperation(boolean) => self.eval_boolean_oper(boolean),
+            // Not(expr) => eval_not(self.eval_expr(expr)),
+            // Minus(expr) => eval_minus(self.eval_expr(expr)),
+            _ => todo!()
         }
     }
 
-    // TODO assignment returns the assigned value?
-    // TODO scope rules
-    fn eval_assignment(&mut self, assign: &Assignment) -> Value {
-        let val = self.eval_expr(&assign.expression);
-        self.symbol_table.create_var(assign.name, val);
+    // // TODO assignment returns the assigned value?
+    // // TODO scope rules
+    // fn eval_assignment(&mut self, assign: &Assignment) -> Value {
+    //     let val = self.eval_expr(&assign.expression);
+    //     self.symbol_table.create_var(assign.name, val);
 
-        Value::Void
-    }
+    //     Value::Void
+    // }
 
-    fn eval_comparison_oper(&mut self, comp: &ComparisonOperation) -> Value {
-        use crate::ast::ComparisonOperator::*;
+    // fn eval_comparison_oper(&mut self, comp: &ComparisonOperation) -> Value {
+    //     use crate::ast::ComparisonOperator::*;
 
-        let left = self.eval_expr(&comp.left);
-        let right = self.eval_expr(&comp.right);
+    //     let left = self.eval_expr(&comp.left);
+    //     let right = self.eval_expr(&comp.right);
 
-        match comp.op {
-            Equals => eval_equals(left, right),
-            NotEquals => eval_not_equals(left, right),
-            Less => eval_less(left, right),
-            LessEquals => eval_less_equals(left, right),
-            Greater => eval_greater(left, right),
-            GreaterEquals => eval_greater_equals(left, right),
-        }
-    }
+    //     match comp.op {
+    //         Equals => eval_equals(left, right),
+    //         NotEquals => eval_not_equals(left, right),
+    //         Less => eval_less(left, right),
+    //         LessEquals => eval_less_equals(left, right),
+    //         Greater => eval_greater(left, right),
+    //         GreaterEquals => eval_greater_equals(left, right),
+    //     }
+    // }
 
-    fn eval_arithmetic_oper(&mut self, arith: &ArithmeticOperation) -> Value {
-        use crate::ast::ArithmeticOperator::*;
+    // fn eval_arithmetic_oper(&mut self, arith: &ArithmeticOperation) -> Value {
+    //     use crate::ast::ArithmeticOperator::*;
 
-        let left = self.eval_expr(&arith.left);
-        let right = self.eval_expr(&arith.right);
+    //     let left = self.eval_expr(&arith.left);
+    //     let right = self.eval_expr(&arith.right);
 
-        match arith.op {
-            Add => eval_add(left, right),
-            Subtract => eval_subtract(left, right),
-            Multiply => eval_multiply(left, right),
-            Divide => eval_divide(left, right),
-            Power => eval_power(left, right),
-            Modulo => eval_modulo(left, right),
-        }
-    }
+    //     match arith.op {
+    //         Add => eval_add(left, right),
+    //         Subtract => eval_subtract(left, right),
+    //         Multiply => eval_multiply(left, right),
+    //         Divide => eval_divide(left, right),
+    //         Power => eval_power(left, right),
+    //         Modulo => eval_modulo(left, right),
+    //     }
+    // }
 
-    fn eval_boolean_oper(&mut self, boolean: &BooleanOperation) -> Value {
-        use crate::ast::BooleanOperator::*;
+    // fn eval_boolean_oper(&mut self, boolean: &BooleanOperation) -> Value {
+    //     use crate::ast::BooleanOperator::*;
 
-        let left = self.eval_expr(&boolean.left);
-        let right = self.eval_expr(&boolean.right);
+    //     let left = self.eval_expr(&boolean.left);
+    //     let right = self.eval_expr(&boolean.right);
 
-        match boolean.op {
-            Or => eval_or(left, right),
-            And => eval_and(left, right),
-        }
-    }
+    //     match boolean.op {
+    //         Or => eval_or(left, right),
+    //         And => eval_and(left, right),
+    //     }
+    // }
 
-    fn eval_function_call(&mut self, call: &FunctionCall) -> Value {
-        if call.name == "println" && call.params.len() == 1 {
+    fn eval_function_call(&mut self, call: &FnCall) -> Value {
+        if call.callee == Expr::Id("print".into()) && call.params.len() == 1 {
+            self.eval_print(call)
+        } else if call.callee == Expr::Id("println".into()) && call.params.len() == 1 {
             self.eval_println(call)
-        } else if call.name == "assert" && call.params.len() == 1 {
+        } else if call.callee == Expr::Id("assert".into()) && call.params.len() == 1 {
             self.eval_assert(call)
         } else {
             panic!(
-                "Function {} could not be found or has invalid number of args",
-                call.name
+                "Function {:?} could not be found or was given an invalid number of args",
+                call.callee
             )
         }
     }
 
-    fn eval_assert(&mut self, call: &FunctionCall) -> Value {
+    fn eval_assert(&mut self, call: &FnCall) -> Value {
         match self.eval_expr(&call.params[0]) {
             Value::Boolean(assert_ok) => {
                 if !assert_ok {
@@ -131,7 +130,33 @@ impl<'a> Runner<'a> {
         }
     }
 
-    fn eval_println(&mut self, call: &FunctionCall) -> Value {
+    fn eval_print(&mut self, call: &FnCall) -> Value {
+        match self.eval_expr(&call.params[0]) {
+            Value::String(ref str) => {
+                let _bytes_written = self.stdout.write(str.as_bytes()).unwrap();
+            }
+            Value::Integer(val) => {
+                let str = format!("{}", val);
+                let _bytes_written = self.stdout.write(str.as_bytes()).unwrap();
+            }
+            Value::Float(val) => {
+                let fmt = format!("{:.5}", val);
+                let _bytes_written = self.stdout.write(fmt.as_bytes()).unwrap();
+            }
+            Value::Boolean(val) => {
+                let fmt = format!("{}", val);
+                let _bytes_written = self.stdout.write(fmt.as_bytes()).unwrap();
+            }
+            Value::Char(val) => {
+                let fmt = format!("{}", val);
+                let _bytes_written = self.stdout.write(fmt.as_bytes()).unwrap();
+            }
+            _ => todo!(),
+        }
+        Value::Void
+    }
+
+    fn eval_println(&mut self, call: &FnCall) -> Value {
         match self.eval_expr(&call.params[0]) {
             Value::String(ref str) => {
                 let _bytes_written = self.stdout.write(str.as_bytes()).unwrap();

@@ -11,3 +11,5 @@ edition = "2021"
 
 [dependencies]
 parser = { path = "../parser" }
+parser_lalrpop = { path = "../parser_lalrpop" }
+runner = { path = "../runner" }
