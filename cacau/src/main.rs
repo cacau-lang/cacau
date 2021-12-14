@@ -1,9 +1,7 @@
 use std::{env, fs, io::BufWriter};
 
-use parser::{Rule, ParserTrait, ExpressionParser};
-
 fn main() {
-    let file = env::args_os().skip(1).next().expect("no file supplied");
+    let file = env::args_os().nth(1).expect("no file supplied");
 
     let contents = fs::read_to_string(file).unwrap();
 

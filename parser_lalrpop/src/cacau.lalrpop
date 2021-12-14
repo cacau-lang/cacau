@@ -16,7 +16,13 @@ Statement: Statement = {
 
 pub Expr = {
     Cmp,
+    VariableDecl,
 };
+
+VariableDecl: Expr = {
+    "let" <name: Identifier> <type_annotation:(":" <Identifier>)?> "=" <expr: Expr>
+        => Expr::VarDecl(Box::new(VariableDecl{<>}))
+}
 
 Cmp: Expr = {
     <left: Cmp> <op: CmpOp> <right: Logic>
@@ -44,9 +50,10 @@ Mul: Expr = {
 
 Term = {
     Literal,
-    Identifier,
+    Identifier => Expr::Id(<>),
     "(" <expr: Expr> ")" => Expr::Paren(Box::new(expr)),
     FnCall,
+//    Unary,
 }
 
 FnCall: Expr = {
@@ -63,6 +70,11 @@ FnCallParams: Vec<Expr> = {
             params
         }
     }
+}
+ 
+Unary: Expr = {
+    "-" <expr: Expr> => Expr::Unary(Box::new(Unary::Minus(expr))),
+    "not" <expr: Expr> => Expr::Unary(Box::new(Unary::Not(expr))),
 }
 
 CmpOp: CmpOp = {
@@ -107,8 +119,8 @@ match {
     _
 }
 
-Identifier: Expr = <s: r"[a-zA-Z_@][a-zA-Z0-9_]*">
-    => Expr::Id(s.into());
+Identifier: String = <s: r"[a-zA-Z_@][a-zA-Z0-9_]*">
+    => s.into();
 
 String: Expr = <s: r#""[^"]*""#>
     => Expr::Lit(Lit::String(String::from(s.trim_matches('"'))));

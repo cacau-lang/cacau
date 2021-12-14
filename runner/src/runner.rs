@@ -1,6 +1,6 @@
 use std::io::Write;
 
-use ast::{CacauProgram, Statement, Expr, FnCall};
+use ast::{CacauProgram, Statement, Expr, FnCall, VariableDecl, CmpExpr, ArithExpr, LogicExpr};
 
 use crate::mem::{SymbolTable, Value};
 
@@ -36,69 +36,69 @@ impl<'a> Runner<'a> {
             Lit(ast::Lit::Bool(boolean)) => Value::Boolean(*boolean),
             Lit(ast::Lit::Char(char)) => Value::Char(*char),
             Lit(ast::Lit::String(string)) => Value::String(string.clone()),
-            // Assignment(assign) => self.eval_assignment(assign),
-            // Identifier(name) => self.eval_identifier(name),
-            // CompOperation(comp) => self.eval_comparison_oper(comp),
-            // ArithOperation(arith) => self.eval_arithmetic_oper(arith),
-            // BoolOperation(boolean) => self.eval_boolean_oper(boolean),
-            // Not(expr) => eval_not(self.eval_expr(expr)),
+            VarDecl(assign) => self.eval_assignment(assign),
+            Id(name) => self.eval_identifier(name),
+            Cmp(comp) => self.eval_cmp_expr(comp),
+            Arith(arith) => self.eval_arith_expr(arith),
+            Logic(boolean) => self.eval_logic_expr(boolean),
+            // Unary(ast::Unary::Not(expr)) => eval_not(self.eval_expr(expr)),
             // Minus(expr) => eval_minus(self.eval_expr(expr)),
             _ => todo!()
         }
     }
 
-    // // TODO assignment returns the assigned value?
-    // // TODO scope rules
-    // fn eval_assignment(&mut self, assign: &Assignment) -> Value {
-    //     let val = self.eval_expr(&assign.expression);
-    //     self.symbol_table.create_var(assign.name, val);
+    // TODO assignment returns the assigned value?
+    // TODO scope rules
+    fn eval_assignment(&mut self, assign: &VariableDecl) -> Value {
+        let val = self.eval_expr(&assign.expr);
+        self.symbol_table.create_var(&assign.name, val);
 
-    //     Value::Void
-    // }
+        Value::Void
+    }
 
-    // fn eval_comparison_oper(&mut self, comp: &ComparisonOperation) -> Value {
-    //     use crate::ast::ComparisonOperator::*;
+    fn eval_cmp_expr(&mut self, comp: &CmpExpr) -> Value {
+        use ast::CmpOp::*;
 
-    //     let left = self.eval_expr(&comp.left);
-    //     let right = self.eval_expr(&comp.right);
+        let left = self.eval_expr(&comp.left);
+        let right = self.eval_expr(&comp.right);
 
-    //     match comp.op {
-    //         Equals => eval_equals(left, right),
-    //         NotEquals => eval_not_equals(left, right),
-    //         Less => eval_less(left, right),
-    //         LessEquals => eval_less_equals(left, right),
-    //         Greater => eval_greater(left, right),
-    //         GreaterEquals => eval_greater_equals(left, right),
-    //     }
-    // }
+        match comp.op {
+            EQ => eval_equals(left, right),
+            NE => eval_not_equals(left, right),
+            LT => eval_less(left, right),
+            LE => eval_less_equals(left, right),
+            GT => eval_greater(left, right),
+            GE => eval_greater_equals(left, right),
+        }
+    }
 
-    // fn eval_arithmetic_oper(&mut self, arith: &ArithmeticOperation) -> Value {
-    //     use crate::ast::ArithmeticOperator::*;
+    fn eval_arith_expr(&mut self, arith: &ArithExpr) -> Value {
+        use ast::ArithOp::*;
 
-    //     let left = self.eval_expr(&arith.left);
-    //     let right = self.eval_expr(&arith.right);
+        let left = self.eval_expr(&arith.left);
+        let right = self.eval_expr(&arith.right);
 
-    //     match arith.op {
-    //         Add => eval_add(left, right),
-    //         Subtract => eval_subtract(left, right),
-    //         Multiply => eval_multiply(left, right),
-    //         Divide => eval_divide(left, right),
-    //         Power => eval_power(left, right),
-    //         Modulo => eval_modulo(left, right),
-    //     }
-    // }
+        match arith.op {
+            Add => eval_add(left, right),
+            Sub => eval_subtract(left, right),
+            Mul => eval_multiply(left, right),
+            Div => eval_divide(left, right),
+            Pow => eval_power(left, right),
+            Mod => eval_modulo(left, right),
+        }
+    }
 
-    // fn eval_boolean_oper(&mut self, boolean: &BooleanOperation) -> Value {
-    //     use crate::ast::BooleanOperator::*;
+    fn eval_logic_expr(&mut self, boolean: &LogicExpr) -> Value {
+        use ast::LogicOp::*;
 
-    //     let left = self.eval_expr(&boolean.left);
-    //     let right = self.eval_expr(&boolean.right);
+        let left = self.eval_expr(&boolean.left);
+        let right = self.eval_expr(&boolean.right);
 
-    //     match boolean.op {
-    //         Or => eval_or(left, right),
-    //         And => eval_and(left, right),
-    //     }
-    // }
+        match boolean.op {
+            Or => eval_or(left, right),
+            And => eval_and(left, right),
+        }
+    }
 
     fn eval_function_call(&mut self, call: &FnCall) -> Value {
         if call.callee == Expr::Id("print".into()) && call.params.len() == 1 {

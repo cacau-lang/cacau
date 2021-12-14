@@ -33,23 +33,23 @@ pub struct Enum {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct Assignment {
+pub struct VariableDecl {
     pub name: String,
     pub type_annotation: Option<String>,
-    pub expression: Expr,
+    pub expr: Expr,
 }
 
 #[derive(Debug, PartialEq)]
 pub enum Expr {
     Lit(Lit),
     Id(String),
-    Assign(Box<Assignment>),
+    VarDecl(Box<VariableDecl>),
     FnCall(Box<FnCall>),
     Arith(Box<ArithExpr>),
     Cmp(Box<CmpExpr>),
     Logic(Box<LogicExpr>),
     Paren(Box<Expr>),
-    Unary(Box<Expr>),
+    Unary(Box<Unary>),
 }
 
 #[derive(Debug, PartialEq)]
@@ -63,8 +63,8 @@ pub enum Lit {
 
 #[derive(Debug, PartialEq)]
 pub enum Unary {
-    Not(Box<Expr>),
-    Minus(Box<Expr>),
+    Not(Expr),
+    Minus(Expr),
 }
 
 #[derive(Debug, PartialEq)]
