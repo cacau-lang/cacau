@@ -1,6 +1,6 @@
 use std::io::Write;
 
-use ast::{CacauProgram, Statement, Expr, FnCall, VariableDecl, CmpExpr, ArithExpr, LogicExpr};
+use ast::{CacauProgram, Statement, Expr, FnCall, VariableDecl, CmpExpr, ArithExpr, LogicExpr, Unary};
 
 use crate::mem::{SymbolTable, Value};
 
@@ -41,9 +41,15 @@ impl<'a> Runner<'a> {
             Cmp(comp) => self.eval_cmp_expr(comp),
             Arith(arith) => self.eval_arith_expr(arith),
             Logic(boolean) => self.eval_logic_expr(boolean),
-            // Unary(ast::Unary::Not(expr)) => eval_not(self.eval_expr(expr)),
-            // Minus(expr) => eval_minus(self.eval_expr(expr)),
+            Unary(ref unary) => self.eval_unary(unary),
             _ => todo!()
+        }
+    }
+
+    fn eval_unary(&mut self, unary: &Unary) -> Value {
+        match unary {
+            Unary::Not(expr) => eval_not(self.eval_expr(expr)),
+            Unary::Minus(expr) => eval_minus(self.eval_expr(expr)),
         }
     }
 
@@ -121,7 +127,7 @@ impl<'a> Runner<'a> {
                 if !assert_ok {
                     // TODO panic only the runtime
                     // TODO show expression that failed
-                    panic!("Assert failed");
+                    panic!("Assert failed: {:?}", call.params);
                 } else {
                     Value::Void
                 }
@@ -268,6 +274,7 @@ fn eval_multiply(left: Value, right: Value) -> Value {
         (Float(val1), Float(val2)) => Float(val1 * val2),
         (Integer(val1), Float(val2)) => Float(*val1 as f64 * val2),
         (Float(val1), Integer(val2)) => Float(val1 * *val2 as f64),
+        (String(string), Integer(multiplier)) => String((0..*multiplier).map(|_| string.as_str()).collect()),
         _ => todo!(
             "Multiplication of {:?} and {:?} not implemented",
             &left,
@@ -321,6 +328,8 @@ fn eval_equals(left: Value, right: Value) -> Value {
     use crate::mem::Value::*;
     match (&left, &right) {
         (Integer(val1), Integer(val2)) => Boolean(val1 == val2),
+        (Integer(val1), Float(val2)) => Boolean(*val1 as f64 == *val2),
+        (Float(val1), Integer(val2)) => Boolean(*val1 == *val2 as f64),
         (String(val1), String(val2)) => Boolean(val1 == val2),
         (Char(val1), Char(val2)) => Boolean(val1 == val2),
         (Float(val1), Float(val2)) =>
@@ -337,6 +346,8 @@ fn eval_less(left: Value, right: Value) -> Value {
     use crate::mem::Value::*;
     match (&left, &right) {
         (Integer(val1), Integer(val2)) => Boolean(val1 < val2),
+        (Integer(val1), Float(val2)) => Boolean((*val1 as f64) < *val2),
+        (Float(val1), Integer(val2)) => Boolean(*val1 < *val2 as f64),
         (String(val1), String(val2)) => Boolean(val1 < val2),
         (Char(val1), Char(val2)) => Boolean(val1 < val2),
         (Float(val1), Float(val2)) => Boolean(val1 < val2),
@@ -349,6 +360,8 @@ fn eval_less_equals(left: Value, right: Value) -> Value {
     use crate::mem::Value::*;
     match (&left, &right) {
         (Integer(val1), Integer(val2)) => Boolean(val1 <= val2),
+        (Integer(val1), Float(val2)) => Boolean(*val1 as f64 <= *val2),
+        (Float(val1), Integer(val2)) => Boolean(*val1 <= *val2 as f64),
         (String(val1), String(val2)) => Boolean(val1 <= val2),
         (Char(val1), Char(val2)) => Boolean(val1 <= val2),
         (Float(val1), Float(val2)) => Boolean(val1 <= val2),
@@ -361,6 +374,8 @@ fn eval_greater(left: Value, right: Value) -> Value {
     use crate::mem::Value::*;
     match (&left, &right) {
         (Integer(val1), Integer(val2)) => Boolean(val1 > val2),
+        (Integer(val1), Float(val2)) => Boolean(*val1 as f64 > *val2),
+        (Float(val1), Integer(val2)) => Boolean(*val1 > *val2 as f64),
         (String(val1), String(val2)) => Boolean(val1 > val2),
         (Char(val1), Char(val2)) => Boolean(val1 > val2),
         (Float(val1), Float(val2)) => Boolean(val1 > val2),
@@ -373,6 +388,8 @@ fn eval_greater_equals(left: Value, right: Value) -> Value {
     use crate::mem::Value::*;
     match (&left, &right) {
         (Integer(val1), Integer(val2)) => Boolean(val1 >= val2),
+        (Integer(val1), Float(val2)) => Boolean(*val1 as f64 >= *val2),
+        (Float(val1), Integer(val2)) => Boolean(*val1 >= *val2 as f64),
         (String(val1), String(val2)) => Boolean(val1 >= val2),
         (Char(val1), Char(val2)) => Boolean(val1 >= val2),
         (Float(val1), Float(val2)) => Boolean(val1 >= val2),
@@ -385,6 +402,8 @@ fn eval_not_equals(left: Value, right: Value) -> Value {
     use crate::mem::Value::*;
     match (&left, &right) {
         (Integer(val1), Integer(val2)) => Boolean(val1 != val2),
+        (Integer(val1), Float(val2)) => Boolean(*val1 as f64 != *val2),
+        (Float(val1), Integer(val2)) => Boolean(*val1 != *val2 as f64),
         (String(val1), String(val2)) => Boolean(val1 != val2),
         (Char(val1), Char(val2)) => Boolean(val1 != val2),
         (Float(val1), Float(val2)) =>

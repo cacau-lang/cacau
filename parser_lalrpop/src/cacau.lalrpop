@@ -43,9 +43,15 @@ Sum: Expr = {
 }
 
 Mul: Expr = {
-    <left: Mul> <op: MulOp> <right: Term>
+    <left: Mul> <op: MulOp> <right: Unary>
         => Expr::Arith(Box::new(ArithExpr{<>})),
-    Term
+    Unary
+}
+
+Unary: Expr = {
+    "-" <expr: Unary> => Expr::Unary(Box::new(Unary::Minus(expr))),
+    "not" <expr: Unary> => Expr::Unary(Box::new(Unary::Not(expr))),
+    Term,
 }
 
 Term = {
@@ -53,7 +59,6 @@ Term = {
     Identifier => Expr::Id(<>),
     "(" <expr: Expr> ")" => Expr::Paren(Box::new(expr)),
     FnCall,
-//    Unary,
 }
 
 FnCall: Expr = {
@@ -72,11 +77,6 @@ FnCallParams: Vec<Expr> = {
     }
 }
  
-Unary: Expr = {
-    "-" <expr: Expr> => Expr::Unary(Box::new(Unary::Minus(expr))),
-    "not" <expr: Expr> => Expr::Unary(Box::new(Unary::Not(expr))),
-}
-
 CmpOp: CmpOp = {
     "==" => CmpOp::EQ,
     "!=" => CmpOp::NE,
