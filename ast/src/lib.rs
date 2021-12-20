@@ -105,6 +105,7 @@ pub enum ArithOp {
 pub enum LogicOp {
     Or,
     And,
+    Xor,
 }
 
 #[derive(Debug, PartialEq)]

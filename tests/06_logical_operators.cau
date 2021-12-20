@@ -2,18 +2,18 @@ assert(true and true);
 assert(not not true);
 
 assert(not false and true);
-assert(not not (false and true));
+assert(not not (false and true) == false);
 
 assert(not not not not not false or true);
 assert(not not not not not not false or true);
 assert(not not not not not not not false or true);
 assert(not not not not not not not not false or true);
 
-assert(0 == 0 and 1 == 1)
+assert(0 == 0 and 1 == 1);
 
 let a = true;
 let b = false;
-let xor_result = (not a or b) and (a or not b);
+let xor_result = (not a and b) or (a and not b);
 assert(xor_result == a xor b);
 
 assert(not (true xor true));

@@ -15,7 +15,7 @@ Statement: Statement = {
 }
 
 pub Expr = {
-    Cmp,
+    Logic,
     VariableDecl,
 };
 
@@ -24,15 +24,15 @@ VariableDecl: Expr = {
         => Expr::VarDecl(Box::new(VariableDecl{<>}))
 }
 
-Cmp: Expr = {
-    <left: Cmp> <op: CmpOp> <right: Logic>
-        => Expr::Cmp(Box::new(CmpExpr{<>})),
-    Logic,
+Logic: Expr = {
+    <left: Logic> <op: LogicOp> <right: Cmp>
+        => Expr::Logic(Box::new(LogicExpr{<>})),
+    Cmp,
 }
 
-Logic: Expr = {
-    <left: Logic> <op: LogicOp> <right: Sum>
-        => Expr::Logic(Box::new(LogicExpr{<>})),
+Cmp: Expr = {
+    <left: Cmp> <op: CmpOp> <right: Sum>
+        => Expr::Cmp(Box::new(CmpExpr{<>})),
     Sum,
 }
 
@@ -89,6 +89,7 @@ CmpOp: CmpOp = {
 LogicOp: LogicOp = {
     "or"  => LogicOp::Or,
     "and" => LogicOp::And,
+    "xor" => LogicOp::Xor,
 }
 
 SumOp: ArithOp = {

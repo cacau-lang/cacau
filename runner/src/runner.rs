@@ -105,6 +105,7 @@ impl<'a> Runner<'a> {
         match boolean.op {
             Or => eval_or(left, right),
             And => eval_and(left, right),
+            Xor => eval_xor(left, right),
         }
     }
 
@@ -264,6 +265,18 @@ fn eval_and(left: Value, right: Value) -> Value {
     use crate::mem::Value::Boolean;
     match (&left, &right) {
         (Boolean(val1), Boolean(val2)) => Boolean(*val1 && *val2),
+        _ => todo!(
+            "Boolean AND not implemented for {:?} and {:?}",
+            &left,
+            &right
+        ),
+    }
+}
+
+fn eval_xor(left: Value, right: Value) -> Value {
+    use crate::mem::Value::Boolean;
+    match (&left, &right) {
+        (Boolean(val1), Boolean(val2)) => Boolean(*val1 ^ *val2),
         _ => todo!(
             "Boolean AND not implemented for {:?} and {:?}",
             &left,
