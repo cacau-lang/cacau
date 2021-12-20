@@ -1,6 +1,8 @@
 use std::io::Write;
 
-use ast::{CacauProgram, Statement, Expr, FnCall, VariableDecl, CmpExpr, ArithExpr, LogicExpr, Unary};
+use ast::{
+    ArithExpr, CacauProgram, CmpExpr, Expr, FnCall, LogicExpr, Statement, Unary, VariableDecl,
+};
 
 use crate::mem::{SymbolTable, Value};
 
@@ -42,7 +44,7 @@ impl<'a> Runner<'a> {
             Arith(arith) => self.eval_arith_expr(arith),
             Logic(boolean) => self.eval_logic_expr(boolean),
             Unary(ref unary) => self.eval_unary(unary),
-            _ => todo!()
+            _ => todo!(),
         }
     }
 
@@ -107,17 +109,64 @@ impl<'a> Runner<'a> {
     }
 
     fn eval_function_call(&mut self, call: &FnCall) -> Value {
-        if call.callee == Expr::Id("print".into()) && call.params.len() == 1 {
-            self.eval_print(call)
-        } else if call.callee == Expr::Id("println".into()) && call.params.len() == 1 {
-            self.eval_println(call)
-        } else if call.callee == Expr::Id("assert".into()) && call.params.len() == 1 {
-            self.eval_assert(call)
-        } else {
-            panic!(
-                "Function {:?} could not be found or was given an invalid number of args",
-                call.callee
-            )
+        if let Expr::Id(ref name) = call.callee {
+            match (name.as_str(), call.params.len()) {
+                ("print", 1) => return self.eval_print(call),
+                ("println", 1) => return self.eval_println(call),
+                ("assert", 1) => return self.eval_assert(call),
+                ("string", 1) => return self.eval_string_cast(call),
+                ("float", 1) => return self.eval_float_cast(call),
+                ("int", 1) => return self.eval_int_cast(call),
+                ("bool", 1) => return self.eval_bool_cast(call),
+                _ => (),
+            }
+        }
+        panic!(
+            "Function {:?} could not be found or was given an invalid number of args",
+            call.callee
+        )
+    }
+
+    fn eval_string_cast(&mut self, call: &FnCall) -> Value {
+        match self.eval_expr(&call.params[0]) {
+            Value::Boolean(bool) => Value::String(bool.to_string()),
+            Value::Float(float) => Value::String(format!("{:.5}", float)),
+            Value::Integer(int) => Value::String(int.to_string()),
+            Value::Char(char) => Value::String(char.to_string()),
+            invalid => panic!("String conversion not implemented for {:?}", invalid),
+        }
+    }
+
+    fn eval_float_cast(&mut self, call: &FnCall) -> Value {
+        match self.eval_expr(&call.params[0]) {
+            Value::Integer(int) => Value::Float(int as f64),
+            Value::String(ref str) => Value::Float(
+                str.parse()
+                    .unwrap_or_else(|_| panic!("Could not parse {} to float", str)),
+            ),
+            invalid => panic!("Float conversion not implemented for {:?}", invalid),
+        }
+    }
+
+    fn eval_int_cast(&mut self, call: &FnCall) -> Value {
+        match self.eval_expr(&call.params[0]) {
+            Value::Float(int) => Value::Integer(int as i64),
+            Value::String(ref str) => Value::Integer(
+                str.parse()
+                    .unwrap_or_else(|_| panic!("Could not parse {} to integer", str)),
+            ),
+            invalid => panic!("Integer conversion not implemented for {:?}", invalid),
+        }
+    }
+
+    fn eval_bool_cast(&mut self, call: &FnCall) -> Value {
+        match self.eval_expr(&call.params[0]) {
+            Value::Integer(int) => Value::Boolean(int != 0),
+            Value::String(ref str) => Value::Boolean(
+                str.parse()
+                    .unwrap_or_else(|_| panic!("Could not parse {} to integer", str)),
+            ),
+            invalid => panic!("Integer conversion not implemented for {:?}", invalid),
         }
     }
 
@@ -274,7 +323,9 @@ fn eval_multiply(left: Value, right: Value) -> Value {
         (Float(val1), Float(val2)) => Float(val1 * val2),
         (Integer(val1), Float(val2)) => Float(*val1 as f64 * val2),
         (Float(val1), Integer(val2)) => Float(val1 * *val2 as f64),
-        (String(string), Integer(multiplier)) => String((0..*multiplier).map(|_| string.as_str()).collect()),
+        (String(string), Integer(multiplier)) => {
+            String((0..*multiplier).map(|_| string.as_str()).collect())
+        }
         _ => todo!(
             "Multiplication of {:?} and {:?} not implemented",
             &left,
