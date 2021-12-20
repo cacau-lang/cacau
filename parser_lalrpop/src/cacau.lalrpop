@@ -128,7 +128,7 @@ String: Expr = <s: r#""[^"]*""#>
 Char: Expr = <s: r"'[^']'">
     => Expr::Lit(Lit::Char(s.chars().skip(1).next().expect("Could not parse char")));
 
-Float: Expr = <s: r"[0-9]+\\.[0-9]">
+Float: Expr = <s: r"[0-9]+\.[0-9]">
     => Expr::Lit(Lit::Float(f64::from_str(s).expect("Could not parse float")));
 
 Int: Expr = <s: r"[0-9]+">

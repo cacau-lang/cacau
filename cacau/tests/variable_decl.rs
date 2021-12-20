@@ -40,6 +40,17 @@ fn simple_decl_int() {
 }
 
 #[test]
+fn simple_decl_float() {
+    assert_eq!(
+        run(r###"
+            let a = 10.0;
+            println(a);
+        "###),
+        "10.00000\n"
+    );
+}
+
+#[test]
 fn simple_decl_with_type() {
     assert_eq!(
         run(r###"
