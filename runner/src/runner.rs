@@ -44,7 +44,7 @@ impl<'a> Runner<'a> {
             Arith(arith) => self.eval_arith_expr(arith),
             Logic(boolean) => self.eval_logic_expr(boolean),
             Unary(ref unary) => self.eval_unary(unary),
-            _ => todo!(),
+            Paren(expr) => self.eval_expr(expr),
         }
     }
 
