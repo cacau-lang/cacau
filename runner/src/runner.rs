@@ -1,7 +1,8 @@
 use std::io::Write;
 
 use ast::{
-    ArithExpr, CacauProgram, CmpExpr, Expr, FnCall, LogicExpr, Statement, Unary, VariableDecl,
+    ArithExpr, Assign, CacauProgram, CmpExpr, Expr, FnCall, LogicExpr, Statement, Unary,
+    VariableDecl,
 };
 
 use crate::mem::{SymbolTable, Value};
@@ -38,13 +39,34 @@ impl<'a> Runner<'a> {
             Lit(ast::Lit::Bool(boolean)) => Value::Boolean(*boolean),
             Lit(ast::Lit::Char(char)) => Value::Char(*char),
             Lit(ast::Lit::String(string)) => Value::String(string.clone()),
-            VarDecl(assign) => self.eval_assignment(assign),
+            VarDecl(assign) => self.eval_var_declaration(assign),
             Id(name) => self.eval_identifier(name),
             Cmp(comp) => self.eval_cmp_expr(comp),
             Arith(arith) => self.eval_arith_expr(arith),
             Logic(boolean) => self.eval_logic_expr(boolean),
             Unary(ref unary) => self.eval_unary(unary),
             Paren(expr) => self.eval_expr(expr),
+            Assign(assign) => self.eval_assignment(assign),
+        }
+    }
+
+    fn eval_assignment(&mut self, assign: &Assign) -> Value {
+        if let Expr::Id(ref var_name) = assign.destination {
+            let value = self.eval_expr(&assign.value);
+            match &assign.operator {
+                None => self.symbol_table.set_value(var_name, value.clone()),
+                Some(op) => {
+                    let value = self.eval_arith_expr(&ArithExpr {
+                        left: Expr::Id(var_name.into()),
+                        op: op.clone(),
+                        right: assign.value.clone(),
+                    });
+                    self.symbol_table.set_value(var_name, value);
+                }
+            }
+            value
+        } else {
+            todo!()
         }
     }
 
@@ -57,7 +79,7 @@ impl<'a> Runner<'a> {
 
     // TODO assignment returns the assigned value?
     // TODO scope rules
-    fn eval_assignment(&mut self, assign: &VariableDecl) -> Value {
+    fn eval_var_declaration(&mut self, assign: &VariableDecl) -> Value {
         let val = self.eval_expr(&assign.expr);
         self.symbol_table.create_var(&assign.name, val);
 
@@ -69,6 +91,8 @@ impl<'a> Runner<'a> {
 
         let left = self.eval_expr(&comp.left);
         let right = self.eval_expr(&comp.right);
+
+        dbg!(&left, &right);
 
         match comp.op {
             EQ => eval_equals(left, right),

@@ -29,4 +29,8 @@ impl SymbolTable {
     pub fn get_value(&self, name: &str) -> Option<&Value> {
         self.symbols.get(name)
     }
+
+    pub fn set_value(&mut self, name: &str, value: Value) {
+        self.create_var(name, value);
+    }
 }

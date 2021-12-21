@@ -17,11 +17,51 @@ Statement: Statement = {
 pub Expr = {
     Logic,
     VariableDecl,
+    Assignment,
 };
 
 VariableDecl: Expr = {
     "let" <name: Identifier> <type_annotation:(":" <Identifier>)?> "=" <expr: Expr>
         => Expr::VarDecl(Box::new(VariableDecl{<>}))
+}
+
+Assignment: Expr = {
+    <destination: Term> "=" <value: Expr>
+        => Expr::Assign(Box::new(Assign{
+            destination,
+            operator: None,
+            value
+        })),
+    <destination: Term> "+=" <value: Expr>
+        => Expr::Assign(Box::new(Assign{
+            destination,
+            operator: Some(ArithOp::Add),
+            value
+        })),
+    <destination: Term> "-=" <value: Expr>
+        => Expr::Assign(Box::new(Assign{
+            destination,
+            operator: Some(ArithOp::Sub),
+            value
+        })),
+    <destination: Term> "*=" <value: Expr>
+        => Expr::Assign(Box::new(Assign{
+            destination,
+            operator: Some(ArithOp::Mul),
+            value
+        })),
+    <destination: Term> "/=" <value: Expr>
+        => Expr::Assign(Box::new(Assign{
+            destination,
+            operator: Some(ArithOp::Div),
+            value
+        })),
+    <destination: Term> "%=" <value: Expr>
+        => Expr::Assign(Box::new(Assign{
+            destination,
+            operator: Some(ArithOp::Mod),
+            value
+        })),
 }
 
 Logic: Expr = {
