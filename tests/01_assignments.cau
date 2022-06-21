@@ -1,5 +1,11 @@
 // This test does not contain assert, because we need to implement comparisons first.
 
+
+let x = $"ls | cut -2 | sed 's/a/b'";
+
+
+let x = $"ls 'meu dir'";
+
 let text = "foo";
 let integer = 100;
 let decimal = 100.0;
@@ -10,4 +16,4 @@ println(text);      // foo
 println(integer);   // 100
 println(decimal);   // 100.00000
 println(character); // 1
-println(truth); // true
+println(truth);     // true

@@ -1,8 +1,16 @@
+
 // First ever hello world with Cacau!
-print("Hello World");
+print("Hello // World");
 print('!');
 
 // More
-print(" The Cacau Lang project was created at ");
-print(2021);
+print("The Cacau Lang.\nIs Here?!\n");
+print(2021 + 10 - 3 * 100 / 0);
 print('.');
+print(true | false)
+
+if not true {
+    print(not true);
+} else {
+    print(false and false)
+}

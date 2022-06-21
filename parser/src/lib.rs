@@ -15,6 +15,7 @@ pub struct CacauParser;
 pub fn parse(contents: &str) -> Result<(Node, Term), Error<Rule>> {
     let inputs = CacauParser::parse(Rule::ArithmeticOperation, contents)?;
     let parser_tree = inputs.single()?;
+    dbg!(&parser_tree);
 
     let ast = ast::okay(parser_tree.clone())?;
     Ok((parser_tree, ast))
